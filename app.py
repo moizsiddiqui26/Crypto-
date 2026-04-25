@@ -82,30 +82,7 @@ def load_module(name, path):
     spec.loader.exec_module(module)
     return module
 
-if "chat" not in st.session_state:
-    st.session_state.chat = []
 
-st.markdown("### 💬 AI Assistant")
-
-user_input = st.text_input("Ask something...")
-
-if user_input:
-    response = ""
-
-    if "risk" in user_input.lower():
-        response = "Your portfolio risk is calculated based on volatility."
-
-    elif "best coin" in user_input.lower():
-        response = "Coins with high return and low volatility are preferable."
-
-    else:
-        response = "I can help with risk, forecast, and portfolio insights."
-
-    st.session_state.chat.append(("You", user_input))
-    st.session_state.chat.append(("Bot", response))
-
-for role, msg in st.session_state.chat:
-    st.write(f"**{role}:** {msg}")
 # =========================
 # LOAD MODULES
 # =========================
