@@ -54,7 +54,16 @@ def main():
     elif page == "👤 Portfolio":
         render_portfolio(df)
 
+st.markdown("### 🤖 AI Insights")
 
+insights = generate_insights(f, risk_df, corr)
+
+for i in insights:
+    st.markdown(f"""
+    <div class="glass-card">
+        {i}
+    </div>
+    """, unsafe_allow_html=True)
 # ============================================================
 # 📊 DASHBOARD
 # ============================================================
