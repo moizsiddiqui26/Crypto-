@@ -11,10 +11,7 @@ TOP_10_COINS = {
     "ETH": "ethereum",
     "BNB": "binancecoin",
     "SOL": "solana",
-    "ADA": "cardano",
-    "DOGE": "dogecoin",
-    "TRX": "tron",
-    "MATIC": "polygon"
+    "ADA": "cardano"
 }
 
 BASE_URL = "https://api.coingecko.com/api/v3"
