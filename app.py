@@ -25,7 +25,8 @@ def load_module(name, path):
     spec.loader.exec_module(module)
     return module
 
-
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # =========================
 # 🔄 LOAD MODULES
 # =========================
