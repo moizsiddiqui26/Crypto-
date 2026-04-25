@@ -10,7 +10,6 @@ TOP_10_COINS = {
     "BTC": "bitcoin",
     "ETH": "ethereum",
     "BNB": "binancecoin",
-    "XRP": "ripple",
     "SOL": "solana",
     "ADA": "cardano",
     "DOGE": "dogecoin",
