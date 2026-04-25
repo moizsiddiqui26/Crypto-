@@ -178,7 +178,7 @@ def render_forecast(df):
     amount = st.number_input("Investment ($)", value=1000.0)
 
     coin_df = df[df["Crypto"] == coin]
-
+    df = df[df["Crypto"] != "XRP"]
     result = get_forecast_summary(coin_df, amount, 7)
 
     if result:
