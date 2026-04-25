@@ -7,8 +7,12 @@ import numpy as np
 from services.crypto_api import get_historical_data
 from services.risk_engine import run_risk_analysis, calculate_portfolio_risk
 from services.forecast_engine import get_forecast_summary
-from services.ai_insights import generate_insights  # ✅ NEW
+from services.ai_portfolio import optimize_portfolio
+from services.ai_signals import generate_signals
+from services.ai_openai import get_ai_response
+
 from db.models import add_holding, get_holdings
+from services.email_service import send_portfolio_summary_email
 
 
 # =========================
@@ -19,251 +23,106 @@ def load_data():
     return get_historical_data()
 
 
-def space(h=25):
-    st.markdown(f"<div style='height:{h}px'></div>", unsafe_allow_html=True)
-
-
 # =========================
-# MAIN ROUTER
+# MAIN ENTRY
 # =========================
 def main():
-    page = st.session_state.get("page", "📊 Dashboard")
+
+    page = st.session_state.get("page", "📊 Market")
     df = load_data()
 
     if df is None or df.empty:
         st.error("⚠ Failed to load data")
         return
 
-    if page == "📊 Dashboard":
-        render_dashboard(df)
-    elif page == "💰 Investment":
-        render_investment(df)
+    if page == "📊 Market":
+        render_market(df)
+
+    elif page == "💰 AI Portfolio":
+        render_ai_portfolio(df)
+
     elif page == "⚠ Risk":
         render_risk(df)
-    elif page == "🔮 Forecast":
+
+    elif page == "🔮 AI Forecast":
         render_forecast(df)
+
     elif page == "👤 Portfolio":
         render_portfolio(df)
 
-
-# ============================================================
-# 📊 DASHBOARD
-# ============================================================
-def render_dashboard(df):
-
-    st.markdown("### 📊 Market Overview")
-
-    coins = sorted(df["Crypto"].unique())
-    selected = st.multiselect("Select Coins", coins, default=coins[:4])
-
-    f = df[df["Crypto"].isin(selected)].copy()
-
-    if f.empty:
-        st.warning("Select at least one coin")
-        return
-
-    # =========================
-    # KPI CARDS
-    # =========================
-    latest = f.groupby("Crypto").last().reset_index()
-    cols = st.columns(min(4, len(latest)))
-
-    for i, row in latest.head(4).iterrows():
-        price = row["Close"]
-
-        change = f[f["Crypto"] == row["Crypto"]]["Close"].pct_change().iloc[-1]
-        change = round(change * 100, 2) if pd.notna(change) else 0
-
-        color = "#00ffcc" if change >= 0 else "#ff4b4b"
-
-        cols[i].markdown(f"""
-        <div style="
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            padding: 18px;
-            border-radius: 14px;
-            backdrop-filter: blur(10px);
-            text-align:center;
-        ">
-            <div style="color:gray">{row['Crypto']}</div>
-            <div style="font-size:22px;font-weight:bold;color:#00ffcc;">
-                ${price:.2f}
-            </div>
-            <div style="color:{color}">
-                {change}%
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    space()
-
-    # =========================
-    # DATA PREP
-    # =========================
-    f["Return"] = f.groupby("Crypto")["Close"].pct_change()
-
-    pivot = f.pivot(index="Date", columns="Crypto", values="Close")
-    corr = pivot.pct_change().corr()
-
-    risk_df = run_risk_analysis(f)
-
-    # =========================
-    # 🤖 AI INSIGHTS
-    # =========================
-    st.markdown("### 🤖 AI Insights")
-
-    try:
-        insights = generate_insights(f, risk_df, corr)
-    except Exception as e:
-        insights = [f"⚠ Error generating insights: {e}"]
-
-    for i in insights:
-        st.markdown(f"""
-        <div style="
-            background: rgba(255,255,255,0.05);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-        ">
-            {i}
-        </div>
-        """, unsafe_allow_html=True)
-
-    space()
-
-    # =========================
-    # CHARTS
-    # =========================
-    row1_col1, row1_col2 = st.columns(2)
-    row2_col1, row2_col2 = st.columns(2)
-
-    # PRICE TREND
-    with row1_col1:
-        fig1 = px.line(f, x="Date", y="Close", color="Crypto", template="plotly_dark")
-        fig1.update_layout(margin=dict(l=10, r=10, t=30, b=10))
-        st.plotly_chart(fig1, use_container_width=True)
-
-    # RETURNS
-    with row1_col2:
-        fig2 = px.line(f, x="Date", y="Return", color="Crypto", template="plotly_dark")
-        fig2.update_layout(margin=dict(l=10, r=10, t=30, b=10))
-        st.plotly_chart(fig2, use_container_width=True)
-
-    # CORRELATION
-    with row2_col1:
-        fig3 = px.imshow(corr, text_auto=True, template="plotly_dark")
-        st.plotly_chart(fig3, use_container_width=True)
-
-    # DISTRIBUTION
-    with row2_col2:
-        fig4 = px.histogram(
-            f,
-            x="Return",
-            color="Crypto",
-            nbins=50,
-            template="plotly_dark",
-            opacity=0.6
-        )
-        st.plotly_chart(fig4, use_container_width=True)
+    elif page == "🤖 AI":
+        render_ai_chat(df)
 
 
 # ============================================================
-# 🔮 FORECAST (UPDATED WITH GRAPH)
+# 📊 MARKET (TRADING VIEW STYLE)
 # ============================================================
-def render_forecast(df):
+def render_market(df):
 
-    st.markdown("### 🔮 Forecast")
+    st.markdown("## 📊 Market Overview")
+
+    # 🔥 MARKET TABLE
+    latest = df.groupby("Crypto").last().reset_index()
+
+    latest["Change %"] = (
+        df.groupby("Crypto")["Close"].pct_change().groupby(df["Crypto"]).last().values * 100
+    )
+
+    st.dataframe(
+        latest[["Crypto", "Close", "Change %"]]
+        .rename(columns={"Close": "Price"}),
+        use_container_width=True
+    )
+
+    st.markdown("### 📈 Candlestick Chart")
 
     coin = st.selectbox("Select Coin", df["Crypto"].unique())
+    coin_df = df[df["Crypto"] == coin]
+
+    fig = go.Figure(data=[go.Candlestick(
+        x=coin_df["Date"],
+        open=coin_df["Close"],
+        high=coin_df["Close"] * 1.02,
+        low=coin_df["Close"] * 0.98,
+        close=coin_df["Close"]
+    )])
+
+    fig.update_layout(template="plotly_dark")
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ================= AI SIGNALS =================
+    st.markdown("### 🧠 AI Buy/Sell Signals")
+
+    signals = generate_signals(df)
+    st.dataframe(signals, use_container_width=True)
+
+
+# ============================================================
+# 💰 AI PORTFOLIO
+# ============================================================
+def render_ai_portfolio(df):
+
+    st.markdown("## 🤖 AI Portfolio Allocation")
+
     amount = st.number_input("Investment ($)", value=1000.0)
 
-    coin_df = df[df["Crypto"] == coin]
-    df = df[df["Crypto"] != "XRP"]
-    result = get_forecast_summary(coin_df, amount, 7)
+    if st.button("Generate AI Portfolio"):
 
-    if result:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Predicted Price", f"${result['predicted_price']:.2f}")
-        col2.metric("Expected Value", f"${result['expected_value']:.2f}")
-        col3.metric("Profit %", f"{result['profit_pct']:.2f}%")
+        result = optimize_portfolio(df, amount)
 
-        space()
+        if result.empty:
+            st.warning("No valid portfolio")
+            return
 
-        st.markdown("### 📈 Price Forecast")
+        col1, col2 = st.columns(2)
 
-        fig = go.Figure()
+        with col1:
+            st.dataframe(result, use_container_width=True)
 
-        # Historical
-        fig.add_trace(go.Scatter(
-            x=coin_df["Date"],
-            y=coin_df["Close"],
-            mode="lines",
-            name="Historical"
-        ))
-
-        # Forecast
-        fig.add_trace(go.Scatter(
-            x=result["future_dates"],
-            y=result["future_prices"],
-            mode="lines+markers",
-            name="Forecast"
-        ))
-
-        fig.update_layout(
-            template="plotly_dark",
-            margin=dict(l=10, r=10, t=30, b=10),
-            xaxis_title="Date",
-            yaxis_title="Price"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-# ============================================================
-# 💰 INVESTMENT
-# ============================================================
-def render_investment(df):
-
-    st.markdown('<div class="section-title">💰 Smart Investment Allocation</div>', unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    amount = col1.number_input("Investment ($)", value=1000.0)
-    risk = col2.selectbox("Risk Level", ["Low", "Medium", "High"])
-
-    returns = df.groupby("Crypto").apply(
-        lambda x: (x.Close.iloc[-1] - x.Close.iloc[0]) / x.Close.iloc[0]
-    ).reset_index(name="Return")
-
-    vol = df.groupby("Crypto")["Close"].std().reset_index(name="Vol")
-
-    m = returns.merge(vol, on="Crypto")
-
-    # FIX: no negative allocations
-    m["Return"] = m["Return"].clip(lower=0)
-
-    if risk == "Low":
-        m["Score"] = 1 / (m["Vol"] + 1e-6)
-    elif risk == "Medium":
-        m["Score"] = m["Return"] / (m["Vol"] + 1e-6)
-    else:
-        m["Score"] = m["Return"]
-
-    m = m[m["Score"] > 0]
-
-    m["Allocation %"] = m["Score"] / m["Score"].sum() * 100
-    m["Investment"] = m["Allocation %"] / 100 * amount
-
-    m = m.round(2)
-
-    space()
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.dataframe(m, use_container_width=True)
-
-    with col2:
-        fig = px.pie(m, names="Crypto", values="Investment", template="plotly_dark")
-        st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            fig = px.pie(result, names="Crypto", values="Investment", template="plotly_dark")
+            st.plotly_chart(fig, use_container_width=True)
 
 
 # ============================================================
@@ -271,12 +130,10 @@ def render_investment(df):
 # ============================================================
 def render_risk(df):
 
-    st.markdown('<div class="section-title">⚠ Risk Analysis</div>', unsafe_allow_html=True)
+    st.markdown("## ⚠ Risk Analysis")
 
     risk_df = run_risk_analysis(df)
     st.dataframe(risk_df, use_container_width=True)
-
-    space()
 
     portfolio = calculate_portfolio_risk(df)
 
@@ -286,11 +143,33 @@ def render_risk(df):
 
 
 # ============================================================
+# 🔮 AI FORECAST
+# ============================================================
+def render_forecast(df):
+
+    st.markdown("## 🔮 AI Forecast")
+
+    coin = st.selectbox("Select Coin", df["Crypto"].unique())
+    amount = st.number_input("Investment ($)", value=1000.0)
+
+    coin_df = df[df["Crypto"] == coin]
+
+    result = get_forecast_summary(coin_df, amount, 7)
+
+    if result:
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Predicted Price", f"${result['predicted_price']:.2f}")
+        col2.metric("Expected Value", f"${result['expected_value']:.2f}")
+        col3.metric("Profit %", f"{result['profit_pct']:.2f}%")
+
+
+# ============================================================
 # 👤 PORTFOLIO
 # ============================================================
 def render_portfolio(df):
 
-    st.markdown('<div class="section-title">👤 Portfolio</div>', unsafe_allow_html=True)
+    st.markdown("## 👤 Portfolio")
 
     email = st.session_state.get("email")
 
@@ -303,8 +182,6 @@ def render_portfolio(df):
         add_holding(email, coin, amount, str(date))
         st.success("Added!")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
     data = get_holdings(email)
 
     if not data:
@@ -314,96 +191,44 @@ def render_portfolio(df):
     portfolio_df = pd.DataFrame(data, columns=["Crypto", "Amount", "Date"])
     portfolio_df["Date"] = pd.to_datetime(portfolio_df["Date"])
 
-    # =========================
-    # 🔥 CALCULATE CURRENT PRICE
-    # =========================
     latest_prices = df.groupby("Crypto").last().reset_index()[["Crypto", "Close"]]
     latest_prices.rename(columns={"Close": "Current Price"}, inplace=True)
 
-    # Merge with portfolio
     portfolio_df = portfolio_df.merge(latest_prices, on="Crypto", how="left")
 
-    # =========================
-    # 🔥 CALCULATE BUY PRICE
-    # =========================
-    def get_buy_price(row):
-        coin_df = df[df["Crypto"] == row["Crypto"]]
-        past_data = coin_df[coin_df["Date"] <= row["Date"]]
-
-        if past_data.empty:
-            return np.nan
-
-        return past_data.iloc[-1]["Close"]
-
-    portfolio_df["Buy Price"] = portfolio_df.apply(get_buy_price, axis=1)
-
-    # =========================
-    # 🔥 CALCULATE PROFIT
-    # =========================
-    portfolio_df["Quantity"] = portfolio_df["Amount"] / portfolio_df["Buy Price"]
-
+    portfolio_df["Quantity"] = portfolio_df["Amount"] / portfolio_df["Current Price"]
     portfolio_df["Current Value"] = portfolio_df["Quantity"] * portfolio_df["Current Price"]
-
     portfolio_df["Profit ($)"] = portfolio_df["Current Value"] - portfolio_df["Amount"]
 
-    portfolio_df["Profit (%)"] = (portfolio_df["Profit ($)"] / portfolio_df["Amount"]) * 100
-
-    # Clean format
-    portfolio_df = portfolio_df.round(2)
-
-    # =========================
-    # 💎 DISPLAY
-    # =========================
-   
     st.dataframe(portfolio_df, use_container_width=True)
 
-    # =========================
-    # 📊 TOTAL PORTFOLIO SUMMARY
-    # =========================
-    total_invested = portfolio_df["Amount"].sum()
-    total_value = portfolio_df["Current Value"].sum()
-    total_profit = total_value - total_invested
-    profit_pct = (total_profit / total_invested) * 100 if total_invested > 0 else 0
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Total Invested", f"${total_invested:.2f}")
-    col2.metric("Current Value", f"${total_value:.2f}")
-    col3.metric("Profit", f"${total_profit:.2f} ({profit_pct:.2f}%)")
-    st.markdown("### 📊 Portfolio Insights")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        fig1 = px.pie(
-        portfolio_df,
-        names="Crypto",
-        values="Current Value",
-        title="Investment Allocation",
-        template="plotly_dark"
-        )
-        st.plotly_chart(fig1, use_container_width=True, key="portfolio_pie")
-
-        st.caption("💰 Shows how your investment is distributed across coins.")
-
-    with col2:
-        fig2 = px.bar(
-            portfolio_df,
-            x="Crypto",
-            y="Profit ($)",
-            color="Profit ($)",
-            color_continuous_scale=["red", "green"],
-            title="Profit / Loss by Coin",
-            template="plotly_dark"
-        )
-        st.plotly_chart(fig2, use_container_width=True, key="portfolio_profit")
-
-        st.caption("📈 Shows which coins are making profit or loss.")
-
-    if st.button("📧 Send Portfolio Summary Email"):
+    if st.button("📧 Send Portfolio Email"):
         send_portfolio_summary_email(email, portfolio_df)
-        st.success("Portfolio summary sent to your email!")
-def render_portfolio(df):
-    st.markdown("👤 Portfolio Module (existing code)")
+        st.success("Email sent!")
+
+
+# ============================================================
+# 🤖 AI CHAT (OPENAI)
+# ============================================================
+def render_ai_chat(df):
+
+    st.markdown("## 🤖 CRYPTOPORT AI")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    user_input = st.chat_input("Ask about crypto...")
+
+    if user_input:
+
+        latest = df.groupby("Crypto").last().reset_index()
+        context = latest.to_string(index=False)
+
+        response = get_ai_response(user_input, context)
+
+        st.session_state.chat_history.append(("user", user_input))
+        st.session_state.chat_history.append(("ai", response))
+
+    for role, msg in st.session_state.chat_history:
+        with st.chat_message("user" if role == "user" else "assistant"):
+            st.markdown(msg)
