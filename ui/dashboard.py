@@ -218,17 +218,192 @@ def render_forecast(df):
 
         st.plotly_chart(fig, use_container_width=True)
 
-
 # ============================================================
-# (OTHER FUNCTIONS UNCHANGED)
+# 💰 INVESTMENT
 # ============================================================
 def render_investment(df):
-    st.markdown("💰 Investment Module (existing code)")
+
+    st.markdown('<div class="section-title">💰 Smart Investment Allocation</div>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    amount = col1.number_input("Investment ($)", value=1000.0)
+    risk = col2.selectbox("Risk Level", ["Low", "Medium", "High"])
+
+    returns = df.groupby("Crypto").apply(
+        lambda x: (x.Close.iloc[-1] - x.Close.iloc[0]) / x.Close.iloc[0]
+    ).reset_index(name="Return")
+
+    vol = df.groupby("Crypto")["Close"].std().reset_index(name="Vol")
+
+    m = returns.merge(vol, on="Crypto")
+
+    # FIX: no negative allocations
+    m["Return"] = m["Return"].clip(lower=0)
+
+    if risk == "Low":
+        m["Score"] = 1 / (m["Vol"] + 1e-6)
+    elif risk == "Medium":
+        m["Score"] = m["Return"] / (m["Vol"] + 1e-6)
+    else:
+        m["Score"] = m["Return"]
+
+    m = m[m["Score"] > 0]
+
+    m["Allocation %"] = m["Score"] / m["Score"].sum() * 100
+    m["Investment"] = m["Allocation %"] / 100 * amount
+
+    m = m.round(2)
+
+    space()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.dataframe(m, use_container_width=True)
+
+    with col2:
+        fig = px.pie(m, names="Crypto", values="Investment", template="plotly_dark")
+        st.plotly_chart(fig, use_container_width=True)
 
 
+# ============================================================
+# ⚠ RISK
+# ============================================================
 def render_risk(df):
-    st.markdown("⚠ Risk Module (existing code)")
+
+    st.markdown('<div class="section-title">⚠ Risk Analysis</div>', unsafe_allow_html=True)
+
+    risk_df = run_risk_analysis(df)
+    st.dataframe(risk_df, use_container_width=True)
+
+    space()
+
+    portfolio = calculate_portfolio_risk(df)
+
+    col1, col2 = st.columns(2)
+    col1.metric("Risk Level", portfolio["level"])
+    col2.metric("Risk Score", portfolio["score"])
 
 
+# ============================================================
+# 👤 PORTFOLIO
+# ============================================================
+def render_portfolio(df):
+
+    st.markdown('<div class="section-title">👤 Portfolio</div>', unsafe_allow_html=True)
+
+    email = st.session_state.get("email")
+
+    col1, col2, col3 = st.columns(3)
+    coin = col1.selectbox("Crypto", df["Crypto"].unique())
+    amount = col2.number_input("Amount ($)", min_value=0.0)
+    date = col3.date_input("Date")
+
+    if st.button("Add Investment"):
+        add_holding(email, coin, amount, str(date))
+        st.success("Added!")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    data = get_holdings(email)
+
+    if not data:
+        st.info("No investments yet")
+        return
+
+    portfolio_df = pd.DataFrame(data, columns=["Crypto", "Amount", "Date"])
+    portfolio_df["Date"] = pd.to_datetime(portfolio_df["Date"])
+
+    # =========================
+    # 🔥 CALCULATE CURRENT PRICE
+    # =========================
+    latest_prices = df.groupby("Crypto").last().reset_index()[["Crypto", "Close"]]
+    latest_prices.rename(columns={"Close": "Current Price"}, inplace=True)
+
+    # Merge with portfolio
+    portfolio_df = portfolio_df.merge(latest_prices, on="Crypto", how="left")
+
+    # =========================
+    # 🔥 CALCULATE BUY PRICE
+    # =========================
+    def get_buy_price(row):
+        coin_df = df[df["Crypto"] == row["Crypto"]]
+        past_data = coin_df[coin_df["Date"] <= row["Date"]]
+
+        if past_data.empty:
+            return np.nan
+
+        return past_data.iloc[-1]["Close"]
+
+    portfolio_df["Buy Price"] = portfolio_df.apply(get_buy_price, axis=1)
+
+    # =========================
+    # 🔥 CALCULATE PROFIT
+    # =========================
+    portfolio_df["Quantity"] = portfolio_df["Amount"] / portfolio_df["Buy Price"]
+
+    portfolio_df["Current Value"] = portfolio_df["Quantity"] * portfolio_df["Current Price"]
+
+    portfolio_df["Profit ($)"] = portfolio_df["Current Value"] - portfolio_df["Amount"]
+
+    portfolio_df["Profit (%)"] = (portfolio_df["Profit ($)"] / portfolio_df["Amount"]) * 100
+
+    # Clean format
+    portfolio_df = portfolio_df.round(2)
+
+    # =========================
+    # 💎 DISPLAY
+    # =========================
+   
+    st.dataframe(portfolio_df, use_container_width=True)
+
+    # =========================
+    # 📊 TOTAL PORTFOLIO SUMMARY
+    # =========================
+    total_invested = portfolio_df["Amount"].sum()
+    total_value = portfolio_df["Current Value"].sum()
+    total_profit = total_value - total_invested
+    profit_pct = (total_profit / total_invested) * 100 if total_invested > 0 else 0
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Invested", f"${total_invested:.2f}")
+    col2.metric("Current Value", f"${total_value:.2f}")
+    col3.metric("Profit", f"${total_profit:.2f} ({profit_pct:.2f}%)")
+    st.markdown("### 📊 Portfolio Insights")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig1 = px.pie(
+        portfolio_df,
+        names="Crypto",
+        values="Current Value",
+        title="Investment Allocation",
+        template="plotly_dark"
+        )
+        st.plotly_chart(fig1, use_container_width=True, key="portfolio_pie")
+
+        st.caption("💰 Shows how your investment is distributed across coins.")
+
+    with col2:
+        fig2 = px.bar(
+            portfolio_df,
+            x="Crypto",
+            y="Profit ($)",
+            color="Profit ($)",
+            color_continuous_scale=["red", "green"],
+            title="Profit / Loss by Coin",
+            template="plotly_dark"
+        )
+        st.plotly_chart(fig2, use_container_width=True, key="portfolio_profit")
+
+        st.caption("📈 Shows which coins are making profit or loss.")
+
+    if st.button("📧 Send Portfolio Summary Email"):
+        send_portfolio_summary_email(email, portfolio_df)
+        st.success("Portfolio summary sent to your email!")
 def render_portfolio(df):
     st.markdown("👤 Portfolio Module (existing code)")
