@@ -1,8 +1,47 @@
-streamlit
-pandas
-numpy
-plotly
-scikit-learn
-requests
-python-dotenv
-matplotlib
+# =========================
+# 🚀 CORE APP
+# =========================
+streamlit==1.35.0
+python-dotenv==1.0.1
+
+# =========================
+# 📊 DATA & ANALYSIS
+# =========================
+pandas==2.2.2
+numpy==1.26.4
+
+# =========================
+# 📈 VISUALIZATION
+# =========================
+plotly==5.22.0
+
+# =========================
+# 🌐 API REQUESTS
+# =========================
+requests==2.32.3
+
+# =========================
+# 🤖 AI (OPENAI)
+# =========================
+openai==1.35.10
+
+# =========================
+# 🔮 MACHINE LEARNING (LSTM)
+# =========================
+tensorflow==2.16.1
+scikit-learn==1.5.0
+
+# =========================
+# ⚡ PERFORMANCE (OPTIONAL)
+# =========================
+joblib==1.4.2
+
+# =========================
+# 🔌 WEBSOCKET (OPTIONAL)
+# =========================
+websocket-client==1.8.0
+
+# =========================
+# 📧 EMAIL SUPPORT
+# =========================
+# (smtplib is built-in, no install needed)
