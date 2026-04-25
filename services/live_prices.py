@@ -6,10 +6,7 @@ SYMBOL_MAP = {
     "ETH": "ETHUSDT",
     "BNB": "BNBUSDT",
     "SOL": "SOLUSDT",
-    "ADA": "ADAUSDT",
-    "DOGE": "DOGEUSDT",
-    "TRX": "TRXUSDT",
-    "MATIC": "MATICUSDT"
+    "ADA": "ADAUSDT"
 }
 
 BASE_URL = "https://api.binance.com/api/v3/ticker/price"
