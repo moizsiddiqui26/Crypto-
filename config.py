@@ -45,12 +45,7 @@ AUTO_REFRESH_INTERVAL = int(os.getenv("AUTO_REFRESH_INTERVAL", 30))  # seconds
 TOP_10_COINS = {
     "BTC": "bitcoin",
     "ETH": "ethereum",
-    "USDT": "tether",
     "BNB": "binancecoin",
-    "XRP": "ripple",
     "SOL": "solana",
-    "ADA": "cardano",
-    "DOGE": "dogecoin",
-    "TRX": "tron",
-    "MATIC": "polygon"
+    "ADA": "cardano"
 }
