@@ -1,6 +1,14 @@
 import streamlit as st
 import os, importlib.util
 import time
+from dotenv import load_dotenv
+
+# ✅ FORCE LOAD ENV (FIX EMAIL ISSUE)
+load_dotenv()
+
+# ✅ DIRECT EMAIL IMPORT (FIX)
+from services.email_service import send_welcome_email
+
 
 # =========================
 # 🔥 GLOBAL CSS
@@ -32,7 +40,6 @@ section.main > div {
     font-weight: bold;
     border-radius: 10px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,6 +64,7 @@ ui = load_module("ui", os.path.join(BASE_DIR, "ui", "components.py"))
 live = load_module("live", os.path.join(BASE_DIR, "services", "live_prices.py"))
 db = load_module("db", os.path.join(BASE_DIR, "db", "database.py"))
 alert_engine = load_module("alert_engine", os.path.join(BASE_DIR, "services", "alert_engine.py"))
+
 
 # =========================
 # INIT DB
@@ -96,7 +104,7 @@ if "prices" not in st.session_state:
 
 
 # =========================
-# LOGIN UI
+# LOGIN / REGISTER UI
 # =========================
 def login_ui():
 
@@ -114,6 +122,7 @@ def login_ui():
 
     with col2:
 
+        # ================= LOGIN =================
         if st.session_state.mode == "login":
 
             st.markdown("### 🔐 Login")
@@ -137,6 +146,7 @@ def login_ui():
                 st.session_state.mode = "register"
                 st.rerun()
 
+        # ================= REGISTER =================
         else:
 
             st.markdown("### 📝 Create Account")
@@ -151,15 +161,16 @@ def login_ui():
                 if res["success"]:
                     st.success("Account created successfully 🎉")
 
-                    # ✅ SEND WELCOME EMAIL
+                    # ================= EMAIL FIX =================
                     try:
-                        email_service = load_module(
-                            "email_service",
-                            os.path.join(BASE_DIR, "services", "email_service.py")
-                        )
-                        email_service.send_welcome_email(email)
+                        email_sent = send_welcome_email(email)
+
+                        if email_sent:
+                            st.success("📧 Welcome email sent!")
+                        else:
+                            st.warning("⚠ Email not sent (check .env / Gmail App Password)")
                     except Exception as e:
-                        print("Email error:", e)
+                        st.warning(f"Email error: {e}")
 
                     time.sleep(1)
                     st.session_state.mode = "login"
@@ -181,25 +192,21 @@ def main_app():
 
     now = time.time()
 
-    # ✅ SIMPLE & CLEAN REFRESH (no cache conflict)
+    # ✅ CLEAN REFRESH
     if now - st.session_state.last_update > 5:
         st.session_state.prices = get_live_prices()
         st.session_state.last_update = now
 
     prices = st.session_state.prices
 
-    # =========================
-    # 🔥 ALERT CHECK (FIXED)
-    # =========================
+    # ================= ALERT SYSTEM =================
     if prices:
         try:
             check_alerts(prices)
         except Exception as e:
             print("Alert error:", e)
 
-    # =========================
-    # 💰 LIVE UI
-    # =========================
+    # ================= LIVE UI =================
     if prices:
         render_ticker(prices)
     else:
