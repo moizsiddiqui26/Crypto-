@@ -5,7 +5,6 @@ SYMBOL_MAP = {
     "BTC": "BTCUSDT",
     "ETH": "ETHUSDT",
     "BNB": "BNBUSDT",
-    "XRP": "XRPUSDT",
     "SOL": "SOLUSDT",
     "ADA": "ADAUSDT",
     "DOGE": "DOGEUSDT",
