@@ -1,32 +1,36 @@
 import streamlit as st
 import os
-import importlib.util
+import sys
 import time
+import importlib.util
 from dotenv import load_dotenv
 
 # =========================
-# 🔐 LOAD ENV (IMPORTANT)
+# ✅ FIX MODULE IMPORT PATH (CRITICAL)
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR)
+
+# =========================
+# 🔐 LOAD ENV
 # =========================
 load_dotenv()
 
 # =========================
-# 📧 EMAIL (DIRECT IMPORT)
+# 📧 DIRECT IMPORTS (SAFE)
 # =========================
 from services.email_service import send_welcome_email
 
 # =========================
-# 📁 MODULE LOADER
+# 📁 DYNAMIC MODULE LOADER
 # =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # =========================
 # 🔄 LOAD MODULES
 # =========================
@@ -60,25 +64,20 @@ st.set_page_config(
 )
 
 # =========================
-# 🎨 GLOBAL CSS (TRADING APP UI)
+# 🎨 GLOBAL CSS
 # =========================
 st.markdown("""
 <style>
-
-/* Remove default UI */
 header, #MainMenu, footer {visibility: hidden;}
 div[data-testid="stToolbar"] {display: none !important;}
 
-/* Remove spacing */
 .block-container {padding-top: 0rem !important;}
 
-/* Background */
 .stApp {
     background: linear-gradient(135deg, #0f0c29, #1a1840, #24243e);
     color: #eaeaf0;
 }
 
-/* Buttons */
 .stButton>button {
     background: linear-gradient(90deg, #00f5ff, #00ffcc);
     color: black;
@@ -86,21 +85,9 @@ div[data-testid="stToolbar"] {display: none !important;}
     font-weight: bold;
 }
 
-/* Mobile responsive */
 @media (max-width: 768px) {
-    .block-container {
-        padding: 10px !important;
-    }
-
-    h1, h2, h3 {
-        font-size: 18px !important;
-    }
-
-    div[data-testid="column"] {
-        width: 100% !important;
-    }
+    .block-container {padding: 10px !important;}
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -122,12 +109,9 @@ if "prices" not in st.session_state:
 
 
 # =========================
-# 🔐 LOGIN / REGISTER
+# 🔐 LOGIN / REGISTER UI
 # =========================
 def login_ui():
-
-    if st.session_state.auth:
-        return
 
     st.markdown("""
     <div style="text-align:center; padding:60px;">
@@ -140,7 +124,7 @@ def login_ui():
 
     with col2:
 
-        # LOGIN
+        # ================= LOGIN =================
         if st.session_state.mode == "login":
 
             st.markdown("### 🔐 Login")
@@ -164,7 +148,7 @@ def login_ui():
                 st.session_state.mode = "register"
                 st.rerun()
 
-        # REGISTER
+        # ================= REGISTER =================
         else:
 
             st.markdown("### 📝 Register")
@@ -180,7 +164,7 @@ def login_ui():
                 if res["success"]:
                     st.success("Account created 🎉")
 
-                    # ✅ SEND WELCOME EMAIL
+                    # 📧 SEND EMAIL
                     try:
                         sent = send_welcome_email(email)
 
@@ -194,7 +178,6 @@ def login_ui():
                     time.sleep(1)
                     st.session_state.mode = "login"
                     st.rerun()
-
                 else:
                     st.error(res["msg"])
 
@@ -212,21 +195,21 @@ def main_app():
 
     now = time.time()
 
-    # 🔄 PRICE UPDATE
+    # 🔄 UPDATE PRICES
     if now - st.session_state.last_update > 5:
         st.session_state.prices = get_live_prices()
         st.session_state.last_update = now
 
     prices = st.session_state.prices
 
-    # 🔔 ALERT CHECK
+    # 🔔 ALERT SYSTEM
     if prices:
         try:
             check_alerts(prices)
         except Exception as e:
             print("Alert error:", e)
 
-    # 💰 LIVE MARKET
+    # 💰 MARKET UI
     if prices:
         render_ticker(prices)
     else:
@@ -235,9 +218,15 @@ def main_app():
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-    # 📊 LOAD DASHBOARD
-    dashboard = load_module("dashboard", os.path.join(BASE_DIR, "ui", "dashboard.py"))
-    dashboard.main()
+    # 📊 LOAD DASHBOARD (FIXED PATH ISSUE)
+    dashboard_path = os.path.join(BASE_DIR, "ui", "dashboard.py")
+
+    try:
+        dashboard = load_module("dashboard", dashboard_path)
+        dashboard.main()
+    except Exception as e:
+        st.error("❌ Dashboard failed to load")
+        st.code(str(e))
 
 
 # =========================
