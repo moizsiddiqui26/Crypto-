@@ -3,68 +3,34 @@ import os, importlib.util
 import time
 
 # =========================
-# 🔥 GLOBAL CSS (FINAL UI FIX)
+# 🔥 GLOBAL CSS
 # =========================
 st.markdown("""
 <style>
-
-/* 🔥 REMOVE STREAMLIT DEFAULT UI */
 header {visibility: hidden;}
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 
-/* 🔥 REMOVE TOP TOOLBAR (BLACK BAR) */
 div[data-testid="stToolbar"] {
     display: none !important;
 }
 
-/* 🔥 REMOVE ALL TOP SPACING */
-div[data-testid="stAppViewContainer"] {
-    padding-top: 0rem !important;
-}
-
-.block-container {
-    padding-top: 0rem !important;
-}
-
+div[data-testid="stAppViewContainer"],
+.block-container,
 section.main > div {
     padding-top: 0rem !important;
 }
 
-/* 🌌 BACKGROUND */
 .stApp {
     background: linear-gradient(135deg, #0f0c29, #1a1840, #24243e);
     color: #eaeaf0;
 }
 
-/* 🔘 BUTTON STYLE */
 .stButton>button {
     background: linear-gradient(90deg, #00f5ff, #00ffcc);
     color: black;
     font-weight: bold;
     border-radius: 10px;
-}
-
-/* 💎 GLASS CARD */
-.glass-card {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-    padding: 20px;
-}
-
-/* 🎯 SELECT TAG FIX */
-div[data-baseweb="tag"] {
-    background: rgba(255,255,255,0.1) !important;
-    color: white !important;
-    border-radius: 8px !important;
-}
-
-/* 📉 SELECT BOX BACKGROUND */
-div[data-baseweb="select"] {
-    background: rgba(255,255,255,0.05) !important;
 }
 
 </style>
@@ -90,6 +56,7 @@ auth = load_module("auth", os.path.join(BASE_DIR, "auth", "auth_service.py"))
 ui = load_module("ui", os.path.join(BASE_DIR, "ui", "components.py"))
 live = load_module("live", os.path.join(BASE_DIR, "services", "live_prices.py"))
 db = load_module("db", os.path.join(BASE_DIR, "db", "database.py"))
+alert_engine = load_module("alert_engine", os.path.join(BASE_DIR, "services", "alert_engine.py"))
 
 # =========================
 # INIT DB
@@ -103,6 +70,7 @@ render_header = ui.render_header
 render_ticker = ui.render_ticker
 
 get_live_prices = live.get_live_prices
+check_alerts = alert_engine.check_alerts
 
 
 # =========================
@@ -125,14 +93,6 @@ if "last_update" not in st.session_state:
 
 if "prices" not in st.session_state:
     st.session_state.prices = {}
-
-
-# =========================
-# PRICE CACHE (FAST + STABLE)
-# =========================
-@st.cache_data(ttl=5)
-def get_cached_prices():
-    return get_live_prices()
 
 
 # =========================
@@ -190,6 +150,17 @@ def login_ui():
 
                 if res["success"]:
                     st.success("Account created successfully 🎉")
+
+                    # ✅ SEND WELCOME EMAIL
+                    try:
+                        email_service = load_module(
+                            "email_service",
+                            os.path.join(BASE_DIR, "services", "email_service.py")
+                        )
+                        email_service.send_welcome_email(email)
+                    except Exception as e:
+                        print("Email error:", e)
+
                     time.sleep(1)
                     st.session_state.mode = "login"
                     st.rerun()
@@ -210,28 +181,30 @@ def main_app():
 
     now = time.time()
 
-    # 🔄 Update only prices (no full rerender loop)
+    # ✅ SIMPLE & CLEAN REFRESH (no cache conflict)
     if now - st.session_state.last_update > 5:
-        st.session_state.prices = get_cached_prices()
+        st.session_state.prices = get_live_prices()
         st.session_state.last_update = now
 
     prices = st.session_state.prices
 
-    # 🔥 CLEAN FETCHING UI
+    # =========================
+    # 🔥 ALERT CHECK (FIXED)
+    # =========================
+    if prices:
+        try:
+            check_alerts(prices)
+        except Exception as e:
+            print("Alert error:", e)
+
+    # =========================
+    # 💰 LIVE UI
+    # =========================
     if prices:
         render_ticker(prices)
     else:
-        st.markdown("""
-        <div style="
-            background: rgba(0,255,204,0.08);
-            border: 1px solid rgba(0,255,204,0.2);
-            padding: 16px;
-            border-radius: 12px;
-            color: #00ffcc;
-        ">
-        ⚡ Fetching live prices...
-        </div>
-        """, unsafe_allow_html=True)
+        with st.spinner("⚡ Fetching live prices..."):
+            time.sleep(1)
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
