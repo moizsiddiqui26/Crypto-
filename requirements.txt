@@ -5,7 +5,7 @@ streamlit==1.35.0
 python-dotenv==1.0.1
 
 # =========================
-# 📊 DATA & ANALYSIS
+# 📊 DATA PROCESSING
 # =========================
 pandas==2.2.2
 numpy==1.26.4
@@ -21,20 +21,19 @@ plotly==5.22.0
 requests==2.32.3
 
 # =========================
-# 🤖 AI (OPENAI)
+# 🤖 OPENAI (CHATGPT)
 # =========================
 openai==1.35.10
 
 # =========================
-# 🔮 MACHINE LEARNING (LSTM)
+# 🔮 MACHINE LEARNING
 # =========================
-tensorflow==2.16.1
 scikit-learn==1.5.0
 
 # =========================
-# ⚡ PERFORMANCE (OPTIONAL)
+# ⚡ LSTM (SAFE VERSION)
 # =========================
-joblib==1.4.2
+tensorflow-cpu==2.16.1
 
 # =========================
 # 🔌 WEBSOCKET (OPTIONAL)
@@ -42,6 +41,6 @@ joblib==1.4.2
 websocket-client==1.8.0
 
 # =========================
-# 📧 EMAIL SUPPORT
+# ⚙️ UTILITIES
 # =========================
-# (smtplib is built-in, no install needed)
+joblib==1.4.2
