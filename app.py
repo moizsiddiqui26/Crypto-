@@ -1,29 +1,137 @@
 import streamlit as st
-import os
-import sys
+import os, importlib.util
 import time
-import importlib.util
 from dotenv import load_dotenv
 
-# =========================
-# ✅ FIX MODULE IMPORT PATH (CRITICAL)
-# =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(BASE_DIR)
-
-# =========================
-# 🔐 LOAD ENV
-# =========================
+# ✅ FORCE LOAD ENV (FIX EMAIL ISSUE)
 load_dotenv()
 
-# =========================
-# 📧 DIRECT IMPORTS (SAFE)
-# =========================
+# ✅ DIRECT EMAIL IMPORT (FIX)
 from services.email_service import send_welcome_email
 
+
 # =========================
-# 📁 DYNAMIC MODULE LOADER
+# 🔥 GLOBAL CSS
 # =========================
+st.markdown("""
+<style>
+/* 🚀 NEO-FINTECH UI 2026 - GLASSMORPHISM & NEON THEME */
+
+header {visibility: hidden;}
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+div[data-testid="stToolbar"] { display: none !important; }
+
+/* Global Background */
+.stApp {
+    background: radial-gradient(circle at 50% -20%, #151a30 0%, #080b14 100%);
+    color: #e2e8f0;
+    font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif;
+    font-weight: 400;
+}
+
+/* Sidebar Styling */
+section[data-testid="stSidebar"] {
+    background: rgba(15, 20, 35, 0.7) !important;
+    backdrop-filter: blur(20px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Base Glass Container */
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 24px;
+}
+.glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(0, 255, 170, 0.1);
+    border: 1px solid rgba(0, 255, 170, 0.2);
+}
+
+/* Dashboard Metrics Skeleton */
+.metric-container {
+    padding: 15px;
+}
+
+div[data-testid="stMetricValue"] {
+    font-size: 36px !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+
+/* Premium Buttons */
+.stButton>button {
+    background: linear-gradient(135deg, #7000FF 0%, #00FFAA 100%);
+    color: white !important;
+    font-weight: 700;
+    font-size: 16px;
+    border-radius: 12px;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 255, 170, 0.2);
+    width: 100%;
+}
+.stButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0, 255, 170, 0.4);
+    filter: brightness(1.1);
+}
+
+/* Form Elements */
+.stTextInput>div>div>input, .stSelectbox>div>div>select, .stNumberInput>div>div>input {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    font-size: 16px;
+}
+.stTextInput>div>div>input:focus {
+    border-color: #00FFAA;
+    box-shadow: 0 0 0 1px #00FFAA;
+}
+
+/* Neo Typography */
+.section-title {
+    font-size: 42px;
+    font-weight: 900;
+    margin-bottom: 30px;
+    background: linear-gradient(90deg, #00FFAA, #00E1FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1.5px;
+}
+h1, h2, h3 { font-family: 'Inter', sans-serif !important; }
+
+/* Animations */
+@keyframes skeleton-loading {
+  0% { background-color: rgba(255,255,255,0.05); }
+  50% { background-color: rgba(255,255,255,0.1); }
+  100% { background-color: rgba(255,255,255,0.05); }
+}
+.skeleton {
+    animation: skeleton-loading 1.5s infinite ease-in-out;
+    border-radius: 12px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# =========================
+# MODULE LOADER
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
@@ -32,13 +140,19 @@ def load_module(name, path):
 
 
 # =========================
-# 🔄 LOAD MODULES
+# LOAD MODULES
 # =========================
 auth = load_module("auth", os.path.join(BASE_DIR, "auth", "auth_service.py"))
 ui = load_module("ui", os.path.join(BASE_DIR, "ui", "components.py"))
 live = load_module("live", os.path.join(BASE_DIR, "services", "live_prices.py"))
 db = load_module("db", os.path.join(BASE_DIR, "db", "database.py"))
 alert_engine = load_module("alert_engine", os.path.join(BASE_DIR, "services", "alert_engine.py"))
+
+
+# =========================
+# INIT DB
+# =========================
+db.init_db()
 
 login_user = auth.login_user
 register_user = auth.register_user
@@ -49,51 +163,14 @@ render_ticker = ui.render_ticker
 get_live_prices = live.get_live_prices
 check_alerts = alert_engine.check_alerts
 
-# =========================
-# 🗄 INIT DATABASE
-# =========================
-db.init_db()
 
 # =========================
-# ⚙ CONFIG
+# CONFIG
 # =========================
-st.set_page_config(
-    page_title="🚀 CRYPTOPORT",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# =========================
-# 🎨 GLOBAL CSS
-# =========================
-st.markdown("""
-<style>
-header, #MainMenu, footer {visibility: hidden;}
-div[data-testid="stToolbar"] {display: none !important;}
-
-.block-container {padding-top: 0rem !important;}
-
-.stApp {
-    background: linear-gradient(135deg, #0f0c29, #1a1840, #24243e);
-    color: #eaeaf0;
-}
-
-.stButton>button {
-    background: linear-gradient(90deg, #00f5ff, #00ffcc);
-    color: black;
-    border-radius: 10px;
-    font-weight: bold;
-}
-
-@media (max-width: 768px) {
-    .block-container {padding: 10px !important;}
-}
-</style>
-""", unsafe_allow_html=True)
 
 
 # =========================
-# 🧠 SESSION STATE
+# SESSION STATE
 # =========================
 if "auth" not in st.session_state:
     st.session_state.auth = False
@@ -109,14 +186,17 @@ if "prices" not in st.session_state:
 
 
 # =========================
-# 🔐 LOGIN / REGISTER UI
+# LOGIN / REGISTER UI
 # =========================
 def login_ui():
 
+    if st.session_state.auth:
+        return
+
     st.markdown("""
     <div style="text-align:center; padding:60px;">
-        <h1 style="color:#00f5ff;">🚀 CRYPTOPORT</h1>
-        <p style="color:gray;">AI-Powered Crypto Platform</p>
+        <h1 style="color:#00f5ff;">🚀 Crypto SaaS</h1>
+        <p style="color:gray;">Smart Crypto Dashboard</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -132,7 +212,7 @@ def login_ui():
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
 
-            if st.button("Login", use_container_width=True):
+            if st.button("🚀 Login", use_container_width=True):
                 res = login_user(email, password)
 
                 if res["success"]:
@@ -144,34 +224,33 @@ def login_ui():
                 else:
                     st.error(res["msg"])
 
-            if st.button("Create Account"):
+            if st.button("📝 Register", use_container_width=True):
                 st.session_state.mode = "register"
                 st.rerun()
 
         # ================= REGISTER =================
         else:
 
-            st.markdown("### 📝 Register")
+            st.markdown("### 📝 Create Account")
 
             name = st.text_input("Name")
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
 
-            if st.button("Create Account", use_container_width=True):
-
+            if st.button("✅ Create Account", use_container_width=True):
                 res = register_user(name, email, password)
 
                 if res["success"]:
-                    st.success("Account created 🎉")
+                    st.success("Account created successfully 🎉")
 
-                    # 📧 SEND EMAIL
+                    # ================= EMAIL FIX =================
                     try:
-                        sent = send_welcome_email(email)
+                        email_sent = send_welcome_email(email)
 
-                        if sent:
+                        if email_sent:
                             st.success("📧 Welcome email sent!")
                         else:
-                            st.warning("Email not sent (check config)")
+                            st.warning("⚠ Email not sent (check .env / Gmail App Password)")
                     except Exception as e:
                         st.warning(f"Email error: {e}")
 
@@ -181,13 +260,13 @@ def login_ui():
                 else:
                     st.error(res["msg"])
 
-            if st.button("Back to Login"):
+            if st.button("⬅ Back to Login"):
                 st.session_state.mode = "login"
                 st.rerun()
 
 
 # =========================
-# 🚀 MAIN APP
+# MAIN APP
 # =========================
 def main_app():
 
@@ -195,44 +274,38 @@ def main_app():
 
     now = time.time()
 
-    # 🔄 UPDATE PRICES
+    # ✅ CLEAN REFRESH
     if now - st.session_state.last_update > 5:
         st.session_state.prices = get_live_prices()
         st.session_state.last_update = now
 
     prices = st.session_state.prices
 
-    # 🔔 ALERT SYSTEM
+    # ================= ALERT SYSTEM =================
     if prices:
         try:
             check_alerts(prices)
         except Exception as e:
             print("Alert error:", e)
 
-    # 💰 MARKET UI
+    # ================= LIVE UI =================
     if prices:
         render_ticker(prices)
     else:
-        with st.spinner("Loading market..."):
+        with st.spinner("⚡ Fetching live prices..."):
             time.sleep(1)
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-    # 📊 LOAD DASHBOARD (FIXED PATH ISSUE)
-    dashboard_path = os.path.join(BASE_DIR, "ui", "dashboard.py")
-
-    try:
-        dashboard = load_module("dashboard", dashboard_path)
-        dashboard.main()
-    except Exception as e:
-        st.error("❌ Dashboard failed to load")
-        st.code(str(e))
+    dashboard = load_module("dashboard", os.path.join(BASE_DIR, "ui", "dashboard.py"))
+    dashboard.main()
 
 
 # =========================
-# 🔁 ROUTING
+# ROUTING
 # =========================
 if not st.session_state.auth:
     login_ui()
 else:
+    st.empty()
     main_app()
