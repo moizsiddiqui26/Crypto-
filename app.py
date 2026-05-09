@@ -125,6 +125,7 @@ h1, h2, h3 { font-family: 'Inter', sans-serif !important; }
 }
 </style>
 """, unsafe_allow_html=True)
+st.set_page_config(page_title="🚀 Crypto SaaS", layout="wide")
 
 
 # =========================
