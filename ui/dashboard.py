@@ -71,72 +71,100 @@ def main():
 # ============================================================
 def render_dashboard(df):
 
-    st.markdown('<div class="section-title">📊 Premium Market Overview</div>', unsafe_allow_html=True)
-    st.info("💡 **Beginner Tip:** Welcome to your Neo-Fintech AI dashboard! This summarizes the health of the entire crypto market, telling you if investors are scared or greedy, and highlights AI's confidence in market growth.")
-
-    # HERO ANALYTICS
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown('''
-        <div class="glass-card">
-            <h4 style="color:#a0aec0; margin:0;">AI Market Confidence</h4>
-            <div style="font-size: 38px; font-weight: 800; color:#00FFAA;">84%</div>
-            <p style="color:#7000FF; margin:0;">Bullish Trajectory</p>
-        </div>
-        ''', unsafe_allow_html=True)
-        
-    with col2:
-        st.markdown('''
-        <div class="glass-card">
-            <h4 style="color:#a0aec0; margin:0;">Fear & Greed Index</h4>
-            <div style="font-size: 38px; font-weight: 800; color:#FFb84d;">68</div>
-            <p style="color:#eaeaf0; margin:0;">Greed (Accumulation Phase)</p>
-        </div>
-        ''', unsafe_allow_html=True)
-
-    with col3:
-        st.markdown('''
-        <div class="glass-card">
-            <h4 style="color:#a0aec0; margin:0;">Trending Active Coins</h4>
-            <div style="font-size: 38px; font-weight: 800; color:#00E1FF;">BTC, ETH</div>
-            <p style="color:#eaeaf0; margin:0;">High Whale Activity</p>
-        </div>
-        ''', unsafe_allow_html=True)
-        
-    st.markdown("### 📈 Live AI Market Tracking")
+    st.markdown('<div class="section-title">📊 Market Overview</div>', unsafe_allow_html=True)
 
     coins = sorted(df["Crypto"].unique())
-    selected = st.multiselect("Filter Assets", coins, default=coins[:5])
+    selected = st.multiselect("Select Coins", coins, default=coins[:4])
 
     f = df[df["Crypto"].isin(selected)].copy()
 
     if f.empty:
-        st.warning("Please select an asset to track.")
+        st.warning("Select at least one coin")
         return
 
-    # ADVANCED ML/AI CHARTING
+    # =========================
+    # KPI
+    # =========================
+    latest = f.groupby("Crypto").last().reset_index()
+    cols = st.columns(min(4, len(latest)))
+
+    for i, row in latest.head(4).iterrows():
+        price = row["Close"]
+
+        change = f[f["Crypto"] == row["Crypto"]]["Close"].pct_change().iloc[-1]
+        change = round(change * 100, 2) if pd.notna(change) else 0
+
+        color = "#00ffcc" if change >= 0 else "#ff4b4b"
+
+        cols[i].markdown(f"""
+        <div class="kpi">
+            <div style="color:gray">{row['Crypto']}</div>
+            <div style="font-size:22px;font-weight:bold;color:#00ffcc;">
+                ${price:.2f}
+            </div>
+            <div style="color:{color}">
+                {change}%
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # =========================
+    # PREP DATA
+    # =========================
     f["Return"] = f.groupby("Crypto")["Close"].pct_change()
+
     pivot = f.pivot(index="Date", columns="Crypto", values="Close")
     corr = pivot.pct_change().corr()
 
-    row1_col1, row1_col2 = st.columns([7, 3])
+    # =========================
+    # GRID LAYOUT (2 x 2)
+    # =========================
+    row1_col1, row1_col2 = st.columns(2)
+    row2_col1, row2_col2 = st.columns(2)
 
+    # -------------------------
+    # 📈 PRICE TREND
+    # -------------------------
     with row1_col1:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("#### Model Base Tracking (Price vs AI Predictions)")
         fig1 = px.line(f, x="Date", y="Close", color="Crypto", template="plotly_dark")
-        fig1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig1, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.plotly_chart(fig1, use_container_width=True, key="price_chart")
 
+
+        st.caption("📈 Price movement over time — helps identify trends.")
+
+    # -------------------------
+    # 📉 RETURNS
+    # -------------------------
     with row1_col2:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("#### Volatility Breakdown")
-        fig4 = px.histogram(f, x="Return", color="Crypto", nbins=50, template="plotly_dark", opacity=0.6)
-        fig4.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", showlegend=False)
-        st.plotly_chart(fig4, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        fig2 = px.line(f, x="Date", y="Return", color="Crypto", template="plotly_dark")
+        st.plotly_chart(fig2, use_container_width=True, key="returns_chart")
+
+        st.caption("📉 Daily returns — shows volatility and risk spikes.")
+
+    # -------------------------
+    # 🔥 CORRELATION
+    # -------------------------
+    with row2_col1:
+        fig3 = px.imshow(corr, text_auto=True, template="plotly_dark")
+        st.plotly_chart(fig3, use_container_width=True, key="corr_chart")
+
+
+        st.caption("🔥 Correlation between coins — useful for diversification.")
+
+    # -------------------------
+    # 📊 DISTRIBUTION
+    # -------------------------
+    with row2_col2:
+        fig4 = px.histogram(
+            f,
+            x="Return",
+            color="Crypto",
+            nbins=50,
+            template="plotly_dark",
+            opacity=0.6
+        )
 
         st.plotly_chart(fig4, use_container_width=True, key="dist_chart")
 
@@ -147,7 +175,6 @@ def render_dashboard(df):
 def render_investment(df):
 
     st.markdown('<div class="section-title">💰 Smart Investment Allocation</div>', unsafe_allow_html=True)
-    st.info("💡 **Beginner Tip:** If you want to invest, we help distribute your money safely based on your risk tolerance. Low Risk spreads money across stable coins, High Risk bets on high-growth, volatile ones.")
 
     col1, col2 = st.columns(2)
     amount = col1.number_input("Investment ($)", value=1000.0)
@@ -188,7 +215,6 @@ def render_investment(df):
     with col2:
         fig = px.pie(m, names="Crypto", values="Investment", template="plotly_dark")
         st.plotly_chart(fig, use_container_width=True)
-
 
 # ============================================================
 # ⚠ RISK
