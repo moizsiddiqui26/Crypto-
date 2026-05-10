@@ -15,117 +15,63 @@ from services.email_service import send_welcome_email
 # =========================
 st.markdown("""
 <style>
-/* 🚀 NEO-FINTECH UI 2026 - GLASSMORPHISM & NEON THEME */
 
-header {visibility: hidden;}
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-div[data-testid="stToolbar"] { display: none !important; }
+/* =========================
+   PREMIUM AI FINTECH THEME
+========================= */
 
-/* Global Background */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+header, #MainMenu, footer {
+    visibility: hidden;
+}
+
 .stApp {
-    background: radial-gradient(circle at 50% -20%, #151a30 0%, #080b14 100%);
-    color: #e2e8f0;
-    font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif;
-    font-weight: 400;
+    background:
+        radial-gradient(circle at top left, rgba(108,92,231,0.15), transparent 25%),
+        radial-gradient(circle at top right, rgba(0,212,255,0.10), transparent 25%),
+        linear-gradient(180deg, #081120 0%, #0B1020 100%);
+    color: #F5F7FA;
 }
 
-/* Sidebar Styling */
+/* =========================
+   SIDEBAR
+========================= */
+
 section[data-testid="stSidebar"] {
-    background: rgba(15, 20, 35, 0.7) !important;
-    backdrop-filter: blur(20px) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(12, 18, 32, 0.95) !important;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
 }
 
-/* Base Glass Container */
-.glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(16px);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 24px;
+section[data-testid="stSidebar"] * {
+    color: #F5F7FA !important;
 }
+
+/* =========================
+   GLASS CARD
+========================= */
+
+.glass-card {
+    background: rgba(18, 26, 47, 0.75);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 24px;
+    padding: 24px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
 .glass-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 40px 0 rgba(0, 255, 170, 0.1);
-    border: 1px solid rgba(0, 255, 170, 0.2);
-}
-
-/* Dashboard Metrics Skeleton */
-.metric-container {
-    padding: 15px;
-}
-
-div[data-testid="stMetricValue"] {
-    font-size: 36px !important;
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -1px;
-}
-
-/* Premium Buttons */
-.stButton>button {
-    background: linear-gradient(135deg, #7000FF 0%, #00FFAA 100%);
-    color: white !important;
-    font-weight: 700;
-    font-size: 16px;
-    border-radius: 12px;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 20px rgba(0, 255, 170, 0.2);
-    width: 100%;
-}
-.stButton>button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(0, 255, 170, 0.4);
-    filter: brightness(1.1);
-}
-
-/* Form Elements */
-.stTextInput>div>div>input, .stSelectbox>div>div>select, .stNumberInput>div>div>input {
-    background-color: rgba(0, 0, 0, 0.2);
-    color: white;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    font-size: 16px;
-}
-.stTextInput>div>div>input:focus {
-    border-color: #00FFAA;
-    box-shadow: 0 0 0 1px #00FFAA;
-}
-
-/* Neo Typography */
-.section-title {
-    font-size: 42px;
-    font-weight: 900;
-    margin-bottom: 30px;
-    background: linear-gradient(90deg, #00FFAA, #00E1FF);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -1.5px;
-}
-h1, h2, h3 { font-family: 'Inter', sans-serif !important; }
-
-/* Animations */
-@keyframes skeleton-loading {
-  0% { background-color: rgba(255,255,255,0.05); }
-  50% { background-color: rgba(255,255,255,0.1); }
-  100% { background-color: rgba(255,255,255,0.05); }
-}
-.skeleton {
-    animation: skeleton-loading 1.5s infinite ease-in-out;
-    border-radius: 12px;
-}
-</style>
+    border: 1px solid rgba(0,212,255,0.2);
+    box-shadow: 0 14px 50px rgba(0,212,255,0.08);
 """, unsafe_allow_html=True)
-
 
 # =========================
 # MODULE LOADER
