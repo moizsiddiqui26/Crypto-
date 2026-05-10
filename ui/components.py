@@ -21,6 +21,10 @@ def render_header(user):
         max-width: 100% !important;
     }
 
+    .main .block-container {
+        padding-top: 1rem !important;
+    }
+
     header {
         visibility: hidden;
         height: 0px;
@@ -63,14 +67,6 @@ def render_header(user):
     }
 
     /* =========================================================
-       FIX TOP GAP
-    ========================================================= */
-
-    .main .block-container {
-        padding-top: 1rem !important;
-    }
-
-    /* =========================================================
        HEADER
     ========================================================= */
 
@@ -84,7 +80,7 @@ def render_header(user):
 
         margin-top: 0px !important;
 
-        margin-bottom: 22px;
+        margin-bottom: 24px;
 
         padding: 18px 28px;
 
@@ -93,8 +89,8 @@ def render_header(user):
         background:
             linear-gradient(
                 135deg,
-                rgba(15,23,42,0.95) 0%,
-                rgba(10,16,32,0.92) 100%
+                rgba(15,23,42,0.96) 0%,
+                rgba(10,16,32,0.94) 100%
             );
 
         border: 1px solid rgba(255,255,255,0.06);
@@ -182,47 +178,6 @@ def render_header(user):
     }
 
     /* =========================================================
-       AI STATUS
-    ========================================================= */
-
-    .ai-status {
-
-        display: inline-flex;
-
-        align-items: center;
-
-        gap: 8px;
-
-        padding: 10px 16px;
-
-        border-radius: 999px;
-
-        background: rgba(0,212,255,0.08);
-
-        border: 1px solid rgba(0,212,255,0.15);
-
-        color: #00D4FF;
-
-        font-size: 12px;
-
-        font-weight: 700;
-    }
-
-    .status-dot {
-
-        width: 8px;
-
-        height: 8px;
-
-        border-radius: 50%;
-
-        background: #00E5A8;
-
-        box-shadow:
-            0 0 10px #00E5A8;
-    }
-
-    /* =========================================================
        SIDEBAR
     ========================================================= */
 
@@ -272,7 +227,7 @@ def render_header(user):
     }
 
     /* =========================================================
-       SIDEBAR MENU
+       MENU ITEMS
     ========================================================= */
 
     .menu-item {
@@ -290,8 +245,6 @@ def render_header(user):
         margin-bottom: 10px;
 
         transition: all 0.25s ease;
-
-        cursor: pointer;
 
         background: rgba(255,255,255,0.02);
     }
@@ -371,11 +324,9 @@ def render_header(user):
     # HEADER
     # =========================================================
 
-    st.markdown("""
-    <div class="premium-header">
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="premium-header">', unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([2.2, 7, 1.5])
+    col1, col2, col3 = st.columns([2.2, 7, 1.7])
 
     # =========================================================
     # LOGO
@@ -420,51 +371,52 @@ def render_header(user):
     # AI STATUS
     # =========================================================
 
-with col3:
+    with col3:
 
-    st.markdown(
-        """
-        <div style="display:flex;justify-content:flex-end;">
-
-            <div style="
-                display:flex;
-                align-items:center;
-                gap:8px;
-
-                padding:10px 16px;
-
-                border-radius:999px;
-
-                background:rgba(0,212,255,0.08);
-
-                border:1px solid rgba(0,212,255,0.15);
-
-                color:#00D4FF;
-
-                font-size:12px;
-
-                font-weight:700;
-            ">
+        st.markdown(
+            """
+            <div style="display:flex;justify-content:flex-end;">
 
                 <div style="
-                    width:8px;
-                    height:8px;
+                    display:flex;
+                    align-items:center;
+                    gap:8px;
 
-                    border-radius:50%;
+                    padding:10px 16px;
 
-                    background:#00E5A8;
+                    border-radius:999px;
 
-                    box-shadow:0 0 10px #00E5A8;
-                "></div>
+                    background:rgba(0,212,255,0.08);
 
-                AI SYSTEM ACTIVE
+                    border:1px solid rgba(0,212,255,0.15);
+
+                    color:#00D4FF;
+
+                    font-size:12px;
+
+                    font-weight:700;
+                ">
+
+                    <div style="
+                        width:8px;
+                        height:8px;
+
+                        border-radius:50%;
+
+                        background:#00E5A8;
+
+                        box-shadow:0 0 10px #00E5A8;
+                    "></div>
+
+                    AI SYSTEM ACTIVE
+
+                </div>
 
             </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
     st.markdown("</div>", unsafe_allow_html=True)
 
     # =========================================================
@@ -529,7 +481,7 @@ with col3:
         """, unsafe_allow_html=True)
 
         # =====================================================
-        # QUICK MENU
+        # QUICK ACCESS
         # =====================================================
 
         st.markdown("""
@@ -591,129 +543,3 @@ with col3:
         if st.button("Logout"):
             st.session_state.auth = False
             st.rerun()
-
-
-# ============================================================
-# 💰 PREMIUM LIVE TICKER
-# ============================================================
-def render_ticker(prices):
-
-    st.markdown("""
-    <div style="
-        font-size:34px;
-        font-weight:900;
-        margin-bottom:22px;
-        color:white;
-    ">
-        💰 Live Market Overview
-    </div>
-    """, unsafe_allow_html=True)
-
-    if not prices:
-        st.info("Fetching live market prices...")
-        return
-
-    coins = list(prices.items())
-
-    cols_per_row = 4
-
-    for i in range(0, len(coins), cols_per_row):
-
-        row = coins[i:i + cols_per_row]
-
-        cols = st.columns(cols_per_row)
-
-        for j in range(cols_per_row):
-
-            if j < len(row):
-
-                symbol, price = row[j]
-
-                cols[j].markdown(f"""
-                <div style="
-
-                    background:
-                        linear-gradient(
-                            135deg,
-                            rgba(18,26,47,0.92) 0%,
-                            rgba(10,16,32,0.88) 100%
-                        );
-
-                    border: 1px solid rgba(255,255,255,0.06);
-
-                    border-radius: 24px;
-
-                    padding: 24px;
-
-                    position:relative;
-
-                    overflow:hidden;
-
-                    backdrop-filter: blur(18px);
-
-                    box-shadow:
-                        0 10px 35px rgba(0,0,0,0.25);
-
-                ">
-
-                    <div style="
-                        position:absolute;
-
-                        top:-40px;
-                        right:-40px;
-
-                        width:120px;
-                        height:120px;
-
-                        background:rgba(0,212,255,0.08);
-
-                        border-radius:50%;
-
-                        filter: blur(24px);
-                    "></div>
-
-                    <div style="
-                        color:#94A3B8;
-                        font-size:13px;
-                        margin-bottom:12px;
-                    ">
-                        {symbol}
-                    </div>
-
-                    <div style="
-                        font-size:34px;
-                        font-weight:900;
-                        color:white;
-                        margin-bottom:14px;
-                    ">
-                        ${price:.2f}
-                    </div>
-
-                    <div style="
-                        display:inline-flex;
-
-                        align-items:center;
-
-                        gap:6px;
-
-                        padding:6px 12px;
-
-                        border-radius:999px;
-
-                        background:rgba(0,229,168,0.10);
-
-                        color:#00E5A8;
-
-                        font-size:12px;
-
-                        font-weight:700;
-                    ">
-
-                        ● LIVE MARKET
-
-                    </div>
-
-                </div>
-                """, unsafe_allow_html=True)
-
-        st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
