@@ -2,7 +2,12 @@ import streamlit as st
 
 
 # ============================================================
-# 🚀 PREMIUM MODERN HEADER + SIDEBAR
+# 🚀 PREMIUM COMPONENTS FILE
+# ============================================================
+
+
+# ============================================================
+# HEADER + PROFESSIONAL NAVBAR
 # ============================================================
 def render_header(user):
 
@@ -10,24 +15,18 @@ def render_header(user):
     <style>
 
     /* =========================================================
-       REMOVE STREAMLIT DEFAULT SPACE
+       GLOBAL
     ========================================================= */
 
     .block-container {
-        padding-top: 0rem !important;
+        padding-top: 1rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
-        padding-bottom: 1rem !important;
         max-width: 100% !important;
-    }
-
-    .main .block-container {
-        padding-top: 1rem !important;
     }
 
     header {
         visibility: hidden;
-        height: 0px;
     }
 
     #MainMenu {
@@ -43,18 +42,18 @@ def render_header(user):
     }
 
     /* =========================================================
-       GLOBAL BACKGROUND
+       APP BACKGROUND
     ========================================================= */
 
     .stApp {
 
         background:
             radial-gradient(circle at top left,
-            rgba(108,92,231,0.12),
+            rgba(108,92,231,0.10),
             transparent 30%),
 
             radial-gradient(circle at top right,
-            rgba(0,212,255,0.10),
+            rgba(0,212,255,0.08),
             transparent 30%),
 
             linear-gradient(
@@ -67,20 +66,10 @@ def render_header(user):
     }
 
     /* =========================================================
-       HEADER
+       PROFESSIONAL NAVBAR
     ========================================================= */
 
-    .premium-header {
-
-        position: sticky;
-
-        top: 0;
-
-        z-index: 999;
-
-        margin-top: 0px !important;
-
-        margin-bottom: 24px;
+    .navbar-container {
 
         padding: 18px 28px;
 
@@ -93,88 +82,113 @@ def render_header(user):
                 rgba(10,16,32,0.94) 100%
             );
 
-        border: 1px solid rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.06);
 
         backdrop-filter: blur(18px);
 
         box-shadow:
             0 10px 40px rgba(0,0,0,0.35);
+
+        margin-bottom:24px;
     }
 
     /* =========================================================
        LOGO
     ========================================================= */
 
-    .logo-title {
+    .logo-main {
 
-        font-size: 34px;
+        font-size:32px;
 
-        font-weight: 900;
+        font-weight:900;
 
-        color: white;
+        color:white;
 
-        line-height: 1;
+        line-height:1;
     }
 
-    .logo-subtitle {
+    .logo-sub {
 
-        color: #94A3B8;
+        color:#94A3B8;
 
-        font-size: 13px;
+        font-size:13px;
 
-        margin-top: 6px;
+        margin-top:6px;
     }
 
     /* =========================================================
-       NAVIGATION
+       NAV BUTTONS
     ========================================================= */
 
-    div[role="radiogroup"] {
+    .stButton > button {
 
-        gap: 12px;
+        width:100%;
 
-        justify-content: center;
+        border-radius:16px;
+
+        border:1px solid rgba(255,255,255,0.05);
+
+        background:rgba(255,255,255,0.03);
+
+        color:white;
+
+        padding:0.85rem 1rem;
+
+        font-weight:600;
+
+        transition:all 0.25s ease;
     }
 
-    div[role="radiogroup"] > label {
+    .stButton > button:hover {
 
-        background: rgba(255,255,255,0.03);
+        transform:translateY(-2px);
 
-        border: 1px solid rgba(255,255,255,0.05);
+        background:rgba(0,212,255,0.08);
 
-        border-radius: 16px;
-
-        padding: 12px 18px;
-
-        transition: all 0.25s ease;
-
-        min-width: 160px;
-
-        text-align: center;
+        border:1px solid rgba(0,212,255,0.18);
     }
 
-    div[role="radiogroup"] > label:hover {
+    /* =========================================================
+       AI BADGE
+    ========================================================= */
 
-        transform: translateY(-2px);
+    .ai-badge {
 
-        background: rgba(0,212,255,0.08);
+        display:flex;
 
-        border: 1px solid rgba(0,212,255,0.20);
+        align-items:center;
+
+        justify-content:center;
+
+        gap:8px;
+
+        padding:10px 16px;
+
+        border-radius:999px;
+
+        background:rgba(0,212,255,0.08);
+
+        border:1px solid rgba(0,212,255,0.15);
+
+        color:#00D4FF;
+
+        font-size:12px;
+
+        font-weight:700;
     }
 
-    div[role="radiogroup"] > label[data-selected="true"] {
+    .ai-dot {
 
-        background:
-            linear-gradient(
-                135deg,
-                rgba(108,92,231,0.18) 0%,
-                rgba(0,212,255,0.12) 100%
-            );
+        width:8px;
 
-        border: 1px solid rgba(0,212,255,0.22);
+        height:8px;
+
+        border-radius:50%;
+
+        background:#00E5A8;
 
         box-shadow:
-            0 8px 28px rgba(0,212,255,0.08);
+            0 0 10px #00E5A8;
     }
 
     /* =========================================================
@@ -190,13 +204,11 @@ def render_header(user):
                 rgba(5,8,18,0.98) 100%
             ) !important;
 
-        border-right: 1px solid rgba(255,255,255,0.05);
-
-        width: 320px !important;
+        border-right:1px solid rgba(255,255,255,0.05);
     }
 
     section[data-testid="stSidebar"] * {
-        color: white !important;
+        color:white !important;
     }
 
     /* =========================================================
@@ -212,48 +224,18 @@ def render_header(user):
                 rgba(12,18,32,0.88) 100%
             );
 
-        border: 1px solid rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.06);
 
-        border-radius: 24px;
+        border-radius:24px;
 
-        padding: 22px;
+        padding:22px;
 
-        margin-bottom: 20px;
+        margin-bottom:20px;
 
         backdrop-filter: blur(20px);
 
         box-shadow:
             0 10px 35px rgba(0,0,0,0.25);
-    }
-
-    /* =========================================================
-       MENU ITEMS
-    ========================================================= */
-
-    .menu-item {
-
-        display: flex;
-
-        align-items: center;
-
-        gap: 12px;
-
-        padding: 14px 16px;
-
-        border-radius: 16px;
-
-        margin-bottom: 10px;
-
-        transition: all 0.25s ease;
-
-        background: rgba(255,255,255,0.02);
-    }
-
-    .menu-item:hover {
-
-        background: rgba(108,92,231,0.15);
-
-        transform: translateX(4px);
     }
 
     /* =========================================================
@@ -269,141 +251,83 @@ def render_header(user):
                 rgba(0,212,255,0.08) 100%
             );
 
-        border: 1px solid rgba(255,255,255,0.08);
+        border:1px solid rgba(255,255,255,0.08);
 
-        border-radius: 22px;
+        border-radius:22px;
 
-        padding: 20px;
-    }
-
-    /* =========================================================
-       BUTTONS
-    ========================================================= */
-
-    .stButton > button {
-
-        width: 100%;
-
-        border-radius: 16px;
-
-        border: none;
-
-        padding: 0.9rem 1rem;
-
-        font-weight: 700;
-
-        font-size: 15px;
-
-        background:
-            linear-gradient(
-                135deg,
-                #6C5CE7 0%,
-                #00D4FF 100%
-            );
-
-        color: white;
-
-        transition: all 0.3s ease;
-
-        box-shadow:
-            0 10px 30px rgba(0,212,255,0.12);
-    }
-
-    .stButton > button:hover {
-
-        transform: translateY(-3px);
-
-        box-shadow:
-            0 14px 40px rgba(0,212,255,0.20);
+        padding:20px;
     }
 
     </style>
     """, unsafe_allow_html=True)
 
     # =========================================================
-    # HEADER
+    # NAVBAR
     # =========================================================
 
-    st.markdown('<div class="premium-header">', unsafe_allow_html=True)
+    nav_items = [
+        "📊 Dashboard",
+        "👤 Portfolio",
+        "📈 Trading Signals",
+        "🔮 Forecast",
+        "⚠ Risk",
+        "📉 Charts",
+        "🤖 AI Assistant"
+    ]
 
-    col1, col2, col3 = st.columns([2.2, 7, 1.7])
+    if "page" not in st.session_state:
+        st.session_state.page = "📊 Dashboard"
+
+    st.markdown('<div class="navbar-container">', unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([2.2, 7, 1.5])
+
+    # =========================================================
+    # LOGO
+    # =========================================================
 
     with col1:
 
         st.markdown("""
-        <div class="logo-title">
+        <div class="logo-main">
             🚀 CRYPTOPORT
         </div>
 
-        <div class="logo-subtitle">
+        <div class="logo-sub">
             AI Investment Intelligence Platform
         </div>
         """, unsafe_allow_html=True)
 
+    # =========================================================
+    # NAVIGATION
+    # =========================================================
+
     with col2:
 
-        nav = st.radio(
-            "",
-            [
-                "📊 Dashboard",
-                "👤 Portfolio",
-                "📈 Trading Signals",
-                "🔮 Forecast",
-                "⚠ Risk",
-                "📉 Advanced Charts",
-                "🤖 AI Assistant"
-            ],
-            horizontal=True,
-            label_visibility="collapsed"
-        )
+        menu_cols = st.columns(len(nav_items))
 
-        st.session_state.page = nav
+        for i, item in enumerate(nav_items):
+
+            if menu_cols[i].button(item, key=f"nav_{i}"):
+
+                st.session_state.page = item
+                st.rerun()
+
+    # =========================================================
+    # AI STATUS
+    # =========================================================
 
     with col3:
 
-        st.markdown(
-            """
-            <div style="display:flex;justify-content:flex-end;">
+        st.markdown("""
+        <div class='ai-badge'>
 
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    gap:8px;
+            <div class='ai-dot'></div>
 
-                    padding:10px 16px;
+            AI ACTIVE
 
-                    border-radius:999px;
-
-                    background:rgba(0,212,255,0.08);
-
-                    border:1px solid rgba(0,212,255,0.15);
-
-                    color:#00D4FF;
-
-                    font-size:12px;
-
-                    font-weight:700;
-                ">
-
-                    <div style="
-                        width:8px;
-                        height:8px;
-
-                        border-radius:50%;
-
-                        background:#00E5A8;
-
-                        box-shadow:0 0 10px #00E5A8;
-                    "></div>
-
-                    AI SYSTEM ACTIVE
-
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -430,6 +354,10 @@ def render_header(user):
             Premium AI Crypto Analytics
         </div>
         """, unsafe_allow_html=True)
+
+        # =====================================================
+        # MARKET STATUS
+        # =====================================================
 
         st.markdown("""
         <div class="sidebar-card">
@@ -464,6 +392,10 @@ def render_header(user):
         </div>
         """, unsafe_allow_html=True)
 
+        # =====================================================
+        # USER CARD
+        # =====================================================
+
         st.markdown(f"""
         <div class="user-card">
 
@@ -493,7 +425,7 @@ def render_header(user):
 
 
 # ============================================================
-# 💰 PREMIUM LIVE TICKER
+# LIVE MARKET TICKER
 # ============================================================
 def render_ticker(prices):
 
@@ -538,11 +470,11 @@ def render_ticker(prices):
                             rgba(10,16,32,0.88) 100%
                         );
 
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border:1px solid rgba(255,255,255,0.06);
 
-                    border-radius: 24px;
+                    border-radius:24px;
 
-                    padding: 24px;
+                    padding:24px;
 
                     position:relative;
 
