@@ -420,22 +420,51 @@ def render_header(user):
     # AI STATUS
     # =========================================================
 
-    with col3:
+with col3:
 
-        st.markdown("""
+    st.markdown(
+        """
         <div style="display:flex;justify-content:flex-end;">
 
-            <div class="ai-status">
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:8px;
 
-                <div class="status-dot"></div>
+                padding:10px 16px;
+
+                border-radius:999px;
+
+                background:rgba(0,212,255,0.08);
+
+                border:1px solid rgba(0,212,255,0.15);
+
+                color:#00D4FF;
+
+                font-size:12px;
+
+                font-weight:700;
+            ">
+
+                <div style="
+                    width:8px;
+                    height:8px;
+
+                    border-radius:50%;
+
+                    background:#00E5A8;
+
+                    box-shadow:0 0 10px #00E5A8;
+                "></div>
 
                 AI SYSTEM ACTIVE
 
             </div>
 
         </div>
-        """, unsafe_allow_html=True)
-
+        """,
+        unsafe_allow_html=True
+    )
     st.markdown("</div>", unsafe_allow_html=True)
 
     # =========================================================
