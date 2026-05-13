@@ -265,21 +265,56 @@ def render_forecast(df):
 # ============================================================
 def render_portfolio(df):
 
-    st.markdown('<div class="section-title">👤 AI Portfolio Manager</div>', unsafe_allow_html=True)
-    st.info("💡 **Beginner Tip:** Here you can track what you own. Our AI analyzes your bags and gives you a 'Diversification Score' to make sure you aren't risking all your money on one crazy coin!")
+    st.markdown(
+        '<div class="section-title">👤 AI Portfolio Manager</div>',
+        unsafe_allow_html=True
+    )
+
+    st.info(
+        "💡 Beginner Tip: Track your investments and let AI analyze diversification and portfolio risk."
+    )
 
     email = st.session_state.get("email")
 
+    # ============================================================
+    # INPUTS
+    # ============================================================
+
     col1, col2, col3 = st.columns(3)
-    coin = col1.selectbox("Crypto", df["Crypto"].unique())
-    amount = col2.number_input("Amount ($)", min_value=0.0)
+
+    coin = col1.selectbox(
+        "Crypto",
+        sorted(df["Crypto"].unique())
+    )
+
+    amount = col2.number_input(
+        "Amount ($)",
+        min_value=0.0,
+        step=100.0
+    )
+
     date = col3.date_input("Date")
 
+    # ============================================================
+    # ADD TRANSACTION
+    # ============================================================
+
     if st.button("Add Investment Transaction"):
-        add_holding(email, coin, amount, str(date))
-        st.success("Transaction Added!")
+
+        add_holding(
+            email,
+            coin,
+            amount,
+            str(date)
+        )
+
+        st.success("✅ Transaction Added!")
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # ============================================================
+    # LOAD DATA
+    # ============================================================
 
     data = get_holdings(email)
 
@@ -287,66 +322,252 @@ def render_portfolio(df):
         st.warning("No investments detected in your portfolio.")
         return
 
-    portfolio_df = pd.DataFrame(data, columns=["Crypto", "Amount", "Date"])
-    portfolio_df["Date"] = pd.to_datetime(portfolio_df["Date"])
+    portfolio_df = pd.DataFrame(
+        data,
+        columns=["Crypto", "Amount", "Date"]
+    )
 
-    # CALCULATIONS
-    latest_prices = df.groupby("Crypto").last().reset_index()[["Crypto", "Close"]]
-    latest_prices.rename(columns={"Close": "Current Price"}, inplace=True)
-    
-    portfolio_df = portfolio_df.merge(latest_prices, on="Crypto", how="left")
+    portfolio_df["Date"] = pd.to_datetime(
+        portfolio_df["Date"]
+    )
+
+    # ============================================================
+    # GET CURRENT PRICES
+    # ============================================================
+
+    latest_prices = (
+        df.groupby("Crypto")
+        .last()
+        .reset_index()[["Crypto", "Close"]]
+    )
+
+    latest_prices.rename(
+        columns={"Close": "Current Price"},
+        inplace=True
+    )
+
+    portfolio_df = portfolio_df.merge(
+        latest_prices,
+        on="Crypto",
+        how="left"
+    )
+
+    # ============================================================
+    # BUY PRICE CALCULATION
+    # ============================================================
 
     def get_buy_price(row):
+
         coin_df = df[df["Crypto"] == row["Crypto"]]
-        past_data = coin_df[coin_df["Date"] <= row["Date"]]
-        if past_data.empty: return np.nan
+
+        coin_df = coin_df.sort_values("Date")
+
+        past_data = coin_df[
+            coin_df["Date"] <= row["Date"]
+        ]
+
+        # ========================================================
+        # FIX FOR EMPTY DATA
+        # ========================================================
+
+        if past_data.empty:
+
+            # fallback to earliest available price
+            return coin_df.iloc[0]["Close"]
+
         return past_data.iloc[-1]["Close"]
 
-    portfolio_df["Buy Price"] = portfolio_df.apply(get_buy_price, axis=1)
-    portfolio_df["Quantity"] = portfolio_df["Amount"] / portfolio_df["Buy Price"]
-    portfolio_df["Current Value"] = portfolio_df["Quantity"] * portfolio_df["Current Price"]
-    portfolio_df["Profit ($)"] = portfolio_df["Current Value"] - portfolio_df["Amount"]
-    
-    total_invested = portfolio_df["Amount"].sum()
-    total_value = portfolio_df["Current Value"].sum()
-    total_profit = total_value - total_invested
-    
-    st.markdown("### 🏦 Vault Summary")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Invested", f"${total_invested:.2f}")
-    c2.metric("Current Value", f"${total_value:.2f}", f"{total_profit:.2f} USD")
-    
-    # Fake Diversification AI Score
-    num_coins = portfolio_df["Crypto"].nunique()
-    div_score = min(num_coins * 25, 100)
-    c3.metric("AI Risk Profile", f"{div_score}/100 Safe")
-    
-    risk_level = "High Caution" if div_score < 50 else "Balanced"
-    c4.metric("Risk Assessment", risk_level)
+    portfolio_df["Buy Price"] = portfolio_df.apply(
+        get_buy_price,
+        axis=1
+    )
 
-    st.markdown("### 📊 Holdings Breakdown")
-    st.dataframe(portfolio_df.round(2), use_container_width=True)
+    # ============================================================
+    # CALCULATIONS
+    # ============================================================
+
+    portfolio_df["Quantity"] = (
+        portfolio_df["Amount"] /
+        portfolio_df["Buy Price"]
+    )
+
+    portfolio_df["Current Value"] = (
+        portfolio_df["Quantity"] *
+        portfolio_df["Current Price"]
+    )
+
+    portfolio_df["Profit ($)"] = (
+        portfolio_df["Current Value"] -
+        portfolio_df["Amount"]
+    )
+
+    # ============================================================
+    # CLEANUP NaN
+    # ============================================================
+
+    numeric_cols = [
+        "Buy Price",
+        "Quantity",
+        "Current Price",
+        "Current Value",
+        "Profit ($)"
+    ]
+
+    portfolio_df[numeric_cols] = (
+        portfolio_df[numeric_cols]
+        .fillna(0)
+    )
+
+    # ============================================================
+    # SUMMARY
+    # ============================================================
+
+    total_invested = portfolio_df["Amount"].sum()
+
+    total_value = portfolio_df["Current Value"].sum()
+
+    total_profit = total_value - total_invested
+
+    # ============================================================
+    # METRICS
+    # ============================================================
+
+    st.markdown("## 🏦 Vault Summary")
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric(
+        "Total Invested",
+        f"${total_invested:,.2f}"
+    )
+
+    c2.metric(
+        "Current Value",
+        f"${total_value:,.2f}",
+        f"${total_profit:,.2f}"
+    )
+
+    # ============================================================
+    # AI SCORE
+    # ============================================================
+
+    num_coins = portfolio_df["Crypto"].nunique()
+
+    div_score = min(num_coins * 25, 100)
+
+    c3.metric(
+        "AI Risk Profile",
+        f"{div_score}/100 Safe"
+    )
+
+    risk_level = (
+        "High Caution"
+        if div_score < 50
+        else "Balanced"
+    )
+
+    c4.metric(
+        "Risk Assessment",
+        risk_level
+    )
+
+    # ============================================================
+    # TABLE
+    # ============================================================
+
+    st.markdown("## 📊 Holdings Breakdown")
+
+    display_df = portfolio_df[[
+        "Crypto",
+        "Amount",
+        "Date",
+        "Buy Price",
+        "Quantity",
+        "Current Price",
+        "Current Value",
+        "Profit ($)"
+    ]]
+
+    st.dataframe(
+        display_df.round(2),
+        use_container_width=True
+    )
+
+    # ============================================================
+    # CHARTS
+    # ============================================================
 
     row1, row2 = st.columns([6, 4])
-    with row1:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("#### Allocation Map")
-        fig1 = px.pie(portfolio_df, names="Crypto", values="Current Value", template="plotly_dark")
-        fig1.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig1, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-    with row2:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("#### 🤖 Smart Rebalancing")
-        if div_score < 50:
-            st.warning("⚠️ **AI Warning**: Your portfolio is highly concentrated. Consider diversifying into stablecoins or large-cap assets like BTC/ETH to lower your risk profile.")
-        else:
-            st.success("✅ **AI Good Standing**: Your portfolio is well distributed! Maintain this balance.")
-        
-        st.info("💡 **Goal-based Investing:** Setting aside 10% of profit into stable yield farms is recommended.")
-        st.markdown('</div>', unsafe_allow_html=True)
 
+    # ============================================================
+    # PIE CHART
+    # ============================================================
+
+    with row1:
+
+        st.markdown(
+            '<div class="glass-card">',
+            unsafe_allow_html=True
+        )
+
+        st.markdown("### Allocation Map")
+
+        fig1 = px.pie(
+            portfolio_df,
+            names="Crypto",
+            values="Current Value",
+            template="plotly_dark"
+        )
+
+        fig1.update_layout(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="white")
+        )
+
+        st.plotly_chart(
+            fig1,
+            use_container_width=True
+        )
+
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+    # ============================================================
+    # AI INSIGHTS
+    # ============================================================
+
+    with row2:
+
+        st.markdown(
+            '<div class="glass-card">',
+            unsafe_allow_html=True
+        )
+
+        st.markdown("### 🤖 Smart Rebalancing")
+
+        if div_score < 50:
+
+            st.warning(
+                "⚠️ Portfolio concentration is high. Consider diversifying into BTC/ETH or stable assets."
+            )
+
+        else:
+
+            st.success(
+                "✅ Portfolio diversification looks healthy."
+            )
+
+        st.info(
+            "💡 AI Suggestion: Allocate a portion of profits into lower-volatility assets."
+        )
+
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True
+        )
 
 # ============================================================
 # 📈 TRADING SIGNALS
