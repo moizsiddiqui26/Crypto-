@@ -5,8 +5,7 @@ import streamlit as st
 # LOAD API KEY
 # ============================================================
 
-OPENAI_API_KEY = st.secrets["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"]
-
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 # ============================================================
 # OPENAI CLIENT
 # ============================================================
