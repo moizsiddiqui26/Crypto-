@@ -1,22 +1,17 @@
+# ============================================================
+# app.py
+# COMPLETE UPDATED VERSION
+# ============================================================
+
 import streamlit as st
-import os
-import importlib.util
 import time
-
-from dotenv import load_dotenv
-
-# ============================================================
-# LOAD ENV VARIABLES
-# ============================================================
-
-load_dotenv()
 
 # ============================================================
 # PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
-    page_title="🚀 Crypto AI Portfolio Manager",
+    page_title="🚀 CryptoPort AI",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -34,7 +29,9 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
-/* Hide Streamlit Branding */
+/* ============================================================
+   HIDE STREAMLIT DEFAULT UI
+============================================================ */
 
 header {
     visibility: hidden;
@@ -52,7 +49,9 @@ div[data-testid="stToolbar"] {
     display: none !important;
 }
 
-/* Main App */
+/* ============================================================
+   MAIN APP BACKGROUND
+============================================================ */
 
 .stApp {
 
@@ -71,72 +70,80 @@ div[data-testid="stToolbar"] {
             #0B1020 100%
         );
 
-    color: #F5F7FA;
+    color: white;
 }
 
-/* Sidebar */
+/* ============================================================
+   SIDEBAR
+============================================================ */
 
 section[data-testid="stSidebar"] {
 
     background:
         linear-gradient(
             180deg,
-            rgba(10,16,32,0.98) 0%,
+            rgba(8,12,24,0.98) 0%,
             rgba(5,8,18,0.98) 100%
         ) !important;
 
-    border-right: 1px solid rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.06);
 }
 
 section[data-testid="stSidebar"] * {
-    color: white !important;
+    color:white !important;
 }
 
-/* Buttons */
+/* ============================================================
+   INPUTS
+============================================================ */
 
-.stButton > button {
-
-    width: 100%;
-
-    border-radius: 14px;
-
-    border: 1px solid rgba(255,255,255,0.08);
-
-    background: rgba(255,255,255,0.04);
-
-    color: white;
-
-    font-weight: 600;
-
-    padding: 0.8rem 1rem;
-
-    transition: all 0.25s ease;
-}
-
-.stButton > button:hover {
-
-    transform: translateY(-2px);
-
-    border: 1px solid rgba(0,212,255,0.20);
-
-    background: rgba(0,212,255,0.08);
-}
-
-/* Inputs */
-
-.stTextInput > div > div > input,
+.stTextInput input,
 .stNumberInput input {
 
     background: rgba(255,255,255,0.04) !important;
 
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    border:1px solid rgba(255,255,255,0.08) !important;
 
-    border-radius: 12px !important;
+    border-radius:14px !important;
 
-    color: white !important;
+    color:white !important;
 }
 
-/* Metric Cards */
+/* ============================================================
+   BUTTONS
+============================================================ */
+
+.stButton > button {
+
+    width:100%;
+
+    border-radius:16px;
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    background:rgba(255,255,255,0.04);
+
+    color:white;
+
+    padding:0.8rem 1rem;
+
+    font-weight:600;
+
+    transition:all 0.25s ease;
+}
+
+.stButton > button:hover {
+
+    transform:translateY(-2px);
+
+    border:1px solid rgba(0,212,255,0.20);
+
+    background:rgba(0,212,255,0.08);
+}
+
+/* ============================================================
+   METRICS
+============================================================ */
 
 [data-testid="metric-container"] {
 
@@ -147,110 +154,73 @@ section[data-testid="stSidebar"] * {
             rgba(10,16,32,0.88) 100%
         );
 
-    border: 1px solid rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.06);
 
-    padding: 20px;
+    padding:22px;
 
-    border-radius: 22px;
+    border-radius:22px;
 
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(18px);
 
     box-shadow:
         0 10px 35px rgba(0,0,0,0.25);
 }
 
-/* Dataframes */
+/* ============================================================
+   CHAT
+============================================================ */
 
-[data-testid="stDataFrame"] {
+.stChatMessage {
 
-    border-radius: 18px;
+    background: rgba(255,255,255,0.03);
 
-    overflow: hidden;
+    border:1px solid rgba(255,255,255,0.05);
 
-    border: 1px solid rgba(255,255,255,0.06);
+    border-radius:20px;
+
+    padding:12px;
+
+    margin-bottom:12px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# MODULE LOADER
+# IMPORTS
 # ============================================================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-def load_module(name, path):
-
-    spec = importlib.util.spec_from_file_location(name, path)
-
-    module = importlib.util.module_from_spec(spec)
-
-    spec.loader.exec_module(module)
-
-    return module
-
-
-# ============================================================
-# LOAD MODULES
-# ============================================================
-
-auth = load_module(
-    "auth",
-    os.path.join(BASE_DIR, "auth", "auth_service.py")
+from auth.auth_service import (
+    login_user,
+    register_user
 )
 
-ui = load_module(
-    "ui",
-    os.path.join(BASE_DIR, "ui", "components.py")
+from ui.components import (
+    render_header,
+    render_ticker
 )
 
-dashboard = load_module(
-    "dashboard",
-    os.path.join(BASE_DIR, "ui", "dashboard.py")
+from ui import dashboard
+
+from services.live_prices import (
+    get_live_prices
 )
 
-live_prices = load_module(
-    "live_prices",
-    os.path.join(BASE_DIR, "services", "live_prices.py")
+from services.alert_engine import (
+    check_alerts
 )
 
-db = load_module(
-    "db",
-    os.path.join(BASE_DIR, "db", "database.py")
+from services.email_service import (
+    send_welcome_email
 )
 
-alert_engine = load_module(
-    "alert_engine",
-    os.path.join(BASE_DIR, "services", "alert_engine.py")
-)
-
-email_service = load_module(
-    "email_service",
-    os.path.join(BASE_DIR, "services", "email_service.py")
-)
+from db.database import init_db
 
 # ============================================================
 # INIT DATABASE
 # ============================================================
 
-db.init_db()
-
-# ============================================================
-# IMPORT FUNCTIONS
-# ============================================================
-
-login_user = auth.login_user
-register_user = auth.register_user
-
-render_header = ui.render_header
-render_ticker = ui.render_ticker
-
-get_live_prices = live_prices.get_live_prices
-
-check_alerts = alert_engine.check_alerts
-
-send_welcome_email = email_service.send_welcome_email
+init_db()
 
 # ============================================================
 # SESSION STATE
@@ -272,13 +242,21 @@ if "page" not in st.session_state:
     st.session_state.page = "📊 Dashboard"
 
 # ============================================================
-# LOGIN UI
+# LOGIN / REGISTER UI
 # ============================================================
 
 def login_ui():
 
+    # ========================================================
+    # HERO SECTION
+    # ========================================================
+
     st.markdown("""
-    <div style="text-align:center;padding-top:60px;padding-bottom:30px;">
+    <div style="
+        text-align:center;
+        padding-top:60px;
+        padding-bottom:30px;
+    ">
 
         <div style="
             font-size:62px;
@@ -299,17 +277,29 @@ def login_ui():
     </div>
     """, unsafe_allow_html=True)
 
+    # ========================================================
+    # LOGIN CARD
+    # ========================================================
+
     col1, col2, col3 = st.columns([2,4,2])
 
     with col2:
 
         # ====================================================
-        # LOGIN
+        # LOGIN MODE
         # ====================================================
 
         if st.session_state.mode == "login":
 
-            st.markdown("## 🔐 Login")
+            st.markdown("""
+            <div style="
+                font-size:42px;
+                font-weight:800;
+                margin-bottom:30px;
+            ">
+                🔐 Login
+            </div>
+            """, unsafe_allow_html=True)
 
             email = st.text_input(
                 "Email",
@@ -322,19 +312,26 @@ def login_ui():
                 placeholder="Enter password"
             )
 
+            st.markdown("<br>", unsafe_allow_html=True)
+
             if st.button(
                 "🚀 Login",
                 use_container_width=True
             ):
 
-                result = login_user(email, password)
+                result = login_user(
+                    email,
+                    password
+                )
 
                 if result["success"]:
 
                     st.session_state.auth = True
                     st.session_state.email = email
 
-                    st.success("Login successful")
+                    st.success(
+                        "Login successful"
+                    )
 
                     time.sleep(1)
 
@@ -356,27 +353,37 @@ def login_ui():
                 st.rerun()
 
         # ====================================================
-        # REGISTER
+        # REGISTER MODE
         # ====================================================
 
         else:
 
-            st.markdown("## 📝 Create Account")
+            st.markdown("""
+            <div style="
+                font-size:42px;
+                font-weight:800;
+                margin-bottom:30px;
+            ">
+                📝 Create Account
+            </div>
+            """, unsafe_allow_html=True)
 
             name = st.text_input(
-                "Full Name",
-                placeholder="Your name"
+                "Name",
+                placeholder="Enter your full name"
             )
 
             email = st.text_input(
-                "Email Address",
-                placeholder="example@gmail.com"
+                "Email",
+                placeholder="Enter your email"
             )
 
             password = st.text_input(
                 "Password",
                 type="password"
             )
+
+            st.markdown("<br>", unsafe_allow_html=True)
 
             if st.button(
                 "✅ Register",
@@ -391,18 +398,16 @@ def login_ui():
 
                 if result["success"]:
 
-                    st.success("Account created successfully")
+                    st.success(
+                        "Account created successfully"
+                    )
 
                     try:
 
-                        sent = send_welcome_email(email)
+                        send_welcome_email(email)
 
-                        if sent:
-                            st.success("📧 Welcome email sent")
-
-                    except Exception as e:
-
-                        st.warning(f"Email error: {e}")
+                    except Exception:
+                        pass
 
                     time.sleep(1)
 
@@ -426,41 +431,43 @@ def login_ui():
                 st.rerun()
 
 # ============================================================
-# MAIN APPLICATION
+# MAIN APP
 # ============================================================
 
 def main_app():
-
-    # ========================================================
-    # HEADER
-    # ========================================================
 
     render_header(
         st.session_state.email
     )
 
+    current_time = time.time()
+
     # ========================================================
     # LIVE MARKET REFRESH
     # ========================================================
-
-    current_time = time.time()
 
     if current_time - st.session_state.last_update > 5:
 
         try:
 
-            st.session_state.prices = get_live_prices()
+            st.session_state.prices = (
+                get_live_prices()
+            )
 
-            st.session_state.last_update = current_time
+            st.session_state.last_update = (
+                current_time
+            )
 
         except Exception as e:
 
-            st.warning(f"Market API Error: {e}")
+            st.warning(
+                f"Market API Error: {e}"
+            )
 
     prices = st.session_state.prices
 
     # ========================================================
-    # ALERT ENGINE
+    # ALERTS
     # ========================================================
 
     if prices:
@@ -469,9 +476,8 @@ def main_app():
 
             check_alerts(prices)
 
-        except Exception as e:
-
-            print("Alert engine error:", e)
+        except Exception:
+            pass
 
     # ========================================================
     # LIVE TICKER
@@ -483,7 +489,9 @@ def main_app():
 
     else:
 
-        with st.spinner("Fetching live market prices..."):
+        with st.spinner(
+            "Fetching live market prices..."
+        ):
 
             time.sleep(1)
 
@@ -493,7 +501,7 @@ def main_app():
     )
 
     # ========================================================
-    # LOAD DASHBOARD ROUTER
+    # DASHBOARD ROUTER
     # ========================================================
 
     dashboard.main()
