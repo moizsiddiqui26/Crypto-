@@ -1,40 +1,20 @@
-from openai import OpenAI
+import google.generativeai as genai
 import streamlit as st
 
 # ============================================================
-# LOAD API KEY
+# CONFIGURE GEMINI
 # ============================================================
 
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-# ============================================================
-# OPENAI CLIENT
-# ============================================================
+genai.configure(
+    api_key=st.secrets["GEMINI_API_KEY"]
+)
 
-client = OpenAI(
-    api_key=OPENAI_API_KEY
+model = genai.GenerativeModel(
+    "gemini-1.5-flash"
 )
 
 # ============================================================
-# SYSTEM PROMPT
-# ============================================================
-
-SYSTEM_PROMPT = """
-You are a professional AI Crypto Investment Advisor.
-
-You help beginners understand:
-- cryptocurrency
-- portfolio diversification
-- trading signals
-- RSI and indicators
-- risk management
-- market trends
-
-Always explain simply.
-Never guarantee profits.
-"""
-
-# ============================================================
-# ASK AI
+# AI FUNCTION
 # ============================================================
 
 def ask_ai(question, portfolio_data=None):
@@ -48,31 +28,29 @@ def ask_ai(question, portfolio_data=None):
         {portfolio_data}
         """
 
+    prompt = f"""
+    You are an AI Crypto Investment Advisor.
+
+    Help beginners understand:
+    - cryptocurrency
+    - diversification
+    - portfolio risk
+    - RSI
+    - trading signals
+
+    Never guarantee profits.
+
+    {context}
+
+    USER QUESTION:
+    {question}
+    """
+
     try:
 
-        response = client.chat.completions.create(
+        response = model.generate_content(prompt)
 
-            model="gpt-3.5-turbo",
-
-            messages=[
-
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT
-                },
-
-                {
-                    "role": "user",
-                    "content": f"{context}\n\nQUESTION:\n{question}"
-                }
-
-            ],
-
-            temperature=0.7,
-            max_tokens=500
-        )
-
-        return response.choices[0].message.content
+        return response.text
 
     except Exception as e:
 
