@@ -5,13 +5,20 @@ from services.ai_assistant import ask_ai
 from db.models import get_holdings
 
 
-
 def render_chatbot_page(df):
 
-    st.markdown("# 🤖 AI Crypto Copilot")
+    st.markdown("# 🤖 Gemini Crypto Copilot")
 
     st.info(
-        "Ask questions about investing, portfolio risk, diversification, trends, RSI, forecasts, or crypto learning."
+        """
+        Ask anything about:
+        - Bitcoin
+        - Ethereum
+        - RSI
+        - Trading
+        - Portfolio Risk
+        - Diversification
+        """
     )
 
     email = st.session_state.get("email")
@@ -32,13 +39,13 @@ def render_chatbot_page(df):
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    for role, message in st.session_state.chat_history:
+    for role, msg in st.session_state.chat_history:
 
         with st.chat_message(role):
-            st.markdown(message)
+            st.markdown(msg)
 
     user_input = st.chat_input(
-        "Ask your AI advisor anything..."
+        "Ask your AI crypto advisor..."
     )
 
     if user_input:
@@ -52,7 +59,7 @@ def render_chatbot_page(df):
 
         with st.chat_message("assistant"):
 
-            with st.spinner("Analyzing portfolio and market trends..."):
+            with st.spinner("Gemini AI analyzing market trends..."):
 
                 response = ask_ai(
                     user_input,
