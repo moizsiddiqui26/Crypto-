@@ -10,7 +10,7 @@ GEMINI_API_KEY = st.secrets.get(
 )
 
 # ============================================================
-# CONFIGURE MODEL
+# CONFIGURE GEMINI
 # ============================================================
 
 model = None
@@ -22,11 +22,31 @@ if GEMINI_API_KEY:
     )
 
     model = genai.GenerativeModel(
-        "gemini-1.5-flash"
+        "gemini-1.5-flash-latest"
     )
 
 # ============================================================
-# AI FUNCTION
+# SYSTEM PROMPT
+# ============================================================
+
+SYSTEM_PROMPT = """
+You are an AI Crypto Investment Advisor.
+
+Help users understand:
+- cryptocurrency
+- Bitcoin
+- Ethereum
+- diversification
+- RSI
+- risk management
+- trading basics
+
+Never guarantee profits.
+Keep responses beginner friendly.
+"""
+
+# ============================================================
+# ASK AI
 # ============================================================
 
 def ask_ai(question, portfolio_data=None):
@@ -36,12 +56,7 @@ def ask_ai(question, portfolio_data=None):
         return """
 ❌ Gemini API key missing.
 
-Go to:
-Settings → Secrets
-
-Add:
-
-GEMINI_API_KEY = "your_key"
+Add GEMINI_API_KEY inside Streamlit Secrets.
 """
 
     context = ""
@@ -54,7 +69,7 @@ GEMINI_API_KEY = "your_key"
         """
 
     prompt = f"""
-    You are a crypto AI advisor.
+    {SYSTEM_PROMPT}
 
     {context}
 
