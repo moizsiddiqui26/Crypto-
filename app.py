@@ -16,149 +16,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ============================================================
-# GLOBAL CSS
-# ============================================================
-
 st.markdown(
     """
-    <style>
+    <div style="
+        text-align:center;
+        padding-top:60px;
+        padding-bottom:30px;
+    ">
 
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        <div style="
+            font-size:62px;
+            font-weight:900;
+            color:white;
+        ">
+            🚀 CRYPTOPORT
+        </div>
 
-    html, body, [class*="css"] {font-family: 'Inter', sans-serif;}
+        <div style="
+            color:#94A3B8;
+            font-size:18px;
+            margin-top:10px;
+        ">
+            AI-Powered Crypto Intelligence Platform
+        </div>
 
-    header {visibility: hidden;
-    }
-
-    #MainMenu {
-    visibility: hidden;
-    }
-
-    footer {
-    visibility: hidden;
-    }
-
-    div[data-testid="stToolbar"] {
-    display: none !important;
-    }
-
-    .stApp {
-
-    background:
-        radial-gradient(circle at top left,
-        rgba(108,92,231,0.15),
-        transparent 25%),
-
-        radial-gradient(circle at top right,
-        rgba(0,212,255,0.10),
-        transparent 25%),
-
-        linear-gradient(
-            180deg,
-            #081120 0%,
-            #0B1020 100%
-        );
-
-    color: white;
-    }
-
-    section[data-testid="stSidebar"] {
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(8,12,24,0.98) 0%,
-            rgba(5,8,18,0.98) 100%
-        ) !important;
-
-    border-right:1px solid rgba(255,255,255,0.06);
-    }
-
-    section[data-testid="stSidebar"] * {
-    color:white !important;
-    }
-
-
-    .stTextInput input,
-    .stNumberInput input {
-
-    background: rgba(255,255,255,0.04) !important;
-
-    border:1px solid rgba(255,255,255,0.08) !important;
-
-    border-radius:14px !important;
-
-    color:white !important;
-    }
-
-
-    .stButton > button {
-
-    width:100%;
-
-    border-radius:16px;
-
-    border:1px solid rgba(255,255,255,0.08);
-
-    background:rgba(255,255,255,0.04);
-
-    color:white;
-
-    padding:0.8rem 1rem;
-
-    font-weight:600;
-
-    transition:all 0.25s ease;
-    }
-
-    .stButton > button:hover {
-
-    transform:translateY(-2px);
-
-    border:1px solid rgba(0,212,255,0.20);
-
-    background:rgba(0,212,255,0.08);
-    }
-
-    [data-testid="metric-container"] {
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(18,26,47,0.92) 0%,
-            rgba(10,16,32,0.88) 100%
-        );
-
-    border:1px solid rgba(255,255,255,0.06);
-
-    padding:22px;
-
-    border-radius:22px;
-
-    backdrop-filter: blur(18px);
-
-    box-shadow:
-        0 10px 35px rgba(0,0,0,0.25);
-    }
-
-
-    .stChatMessage {
-
-    background: rgba(255,255,255,0.03);
-
-    border:1px solid rgba(255,255,255,0.05);
-
-    border-radius:20px;
-
-    padding:12px;
-
-    margin-bottom:12px;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
-
+    </div>
+    """,
+    unsafe_allow_html=True)
 # ============================================================
 # IMPORTS
 # ============================================================
