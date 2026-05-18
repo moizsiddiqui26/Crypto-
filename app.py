@@ -20,40 +20,30 @@ st.set_page_config(
 # GLOBAL CSS
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
+    html, body, [class*="css"] {font-family: 'Inter', sans-serif;}
 
-/* ============================================================
-   HIDE STREAMLIT DEFAULT UI
-============================================================ */
+    header {visibility: hidden;
+    }
 
-header {
+    #MainMenu {
     visibility: hidden;
-}
+    }
 
-#MainMenu {
+    footer {
     visibility: hidden;
-}
+    }
 
-footer {
-    visibility: hidden;
-}
-
-div[data-testid="stToolbar"] {
+    div[data-testid="stToolbar"] {
     display: none !important;
-}
+    }
 
-/* ============================================================
-   MAIN APP BACKGROUND
-============================================================ */
-
-.stApp {
+    .stApp {
 
     background:
         radial-gradient(circle at top left,
@@ -71,13 +61,9 @@ div[data-testid="stToolbar"] {
         );
 
     color: white;
-}
+    }
 
-/* ============================================================
-   SIDEBAR
-============================================================ */
-
-section[data-testid="stSidebar"] {
+    section[data-testid="stSidebar"] {
 
     background:
         linear-gradient(
@@ -87,18 +73,15 @@ section[data-testid="stSidebar"] {
         ) !important;
 
     border-right:1px solid rgba(255,255,255,0.06);
-}
+    }
 
-section[data-testid="stSidebar"] * {
+    section[data-testid="stSidebar"] * {
     color:white !important;
-}
+    }
 
-/* ============================================================
-   INPUTS
-============================================================ */
 
-.stTextInput input,
-.stNumberInput input {
+    .stTextInput input,
+    .stNumberInput input {
 
     background: rgba(255,255,255,0.04) !important;
 
@@ -107,13 +90,10 @@ section[data-testid="stSidebar"] * {
     border-radius:14px !important;
 
     color:white !important;
-}
+    }
 
-/* ============================================================
-   BUTTONS
-============================================================ */
 
-.stButton > button {
+    .stButton > button {
 
     width:100%;
 
@@ -130,22 +110,18 @@ section[data-testid="stSidebar"] * {
     font-weight:600;
 
     transition:all 0.25s ease;
-}
+    }
 
-.stButton > button:hover {
+    .stButton > button:hover {
 
     transform:translateY(-2px);
 
     border:1px solid rgba(0,212,255,0.20);
 
     background:rgba(0,212,255,0.08);
-}
+    }
 
-/* ============================================================
-   METRICS
-============================================================ */
-
-[data-testid="metric-container"] {
+    [data-testid="metric-container"] {
 
     background:
         linear-gradient(
@@ -164,13 +140,10 @@ section[data-testid="stSidebar"] * {
 
     box-shadow:
         0 10px 35px rgba(0,0,0,0.25);
-}
+    }
 
-/* ============================================================
-   CHAT
-============================================================ */
 
-.stChatMessage {
+    .stChatMessage {
 
     background: rgba(255,255,255,0.03);
 
@@ -181,10 +154,10 @@ section[data-testid="stSidebar"] * {
     padding:12px;
 
     margin-bottom:12px;
-}
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # IMPORTS
