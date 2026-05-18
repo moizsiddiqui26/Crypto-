@@ -20,21 +20,22 @@ client = OpenAI(
 # ============================================================
 
 SYSTEM_PROMPT = """
-You are an AI Crypto Investment Advisor.
+You are a professional AI Crypto Investment Advisor.
 
-Your job:
-- explain crypto simply
-- help beginners
-- explain risk
-- explain diversification
-- explain RSI and trends
-- provide educational guidance
+You help beginners understand:
+- cryptocurrency
+- portfolio diversification
+- trading signals
+- RSI and indicators
+- risk management
+- market trends
 
+Always explain simply.
 Never guarantee profits.
 """
 
 # ============================================================
-# AI FUNCTION
+# ASK AI
 # ============================================================
 
 def ask_ai(question, portfolio_data=None):
@@ -52,7 +53,7 @@ def ask_ai(question, portfolio_data=None):
 
         response = client.chat.completions.create(
 
-            model="gpt-4.1-mini",
+            model="gpt-3.5-turbo",
 
             messages=[
 
@@ -76,15 +77,4 @@ def ask_ai(question, portfolio_data=None):
 
     except Exception as e:
 
-        return f"""
-❌ AI Assistant Error
-
-Possible reasons:
-- Invalid API key
-- Billing not enabled
-- OpenAI quota exceeded
-- Wrong model access
-
-Error:
-{str(e)}
-"""
+        return f"AI Error: {str(e)}"
