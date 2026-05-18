@@ -1,19 +1,18 @@
 from openai import OpenAI
-from dotenv import load_dotenv
-import os
+import streamlit as st
 
 # ============================================================
-# LOAD ENV
+# LOAD API KEY
 # ============================================================
 
-load_dotenv()
+OPENAI_API_KEY = st.secrets["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"]
 
 # ============================================================
 # OPENAI CLIENT
 # ============================================================
 
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=OPENAI_API_KEY
 )
 
 # ============================================================
@@ -23,21 +22,19 @@ client = OpenAI(
 SYSTEM_PROMPT = """
 You are an AI Crypto Investment Advisor.
 
-Your responsibilities:
-- Explain crypto simply
-- Help beginners understand investing
-- Explain RSI, trends, diversification
-- Analyze portfolios
-- Explain risk levels
-- Give educational guidance only
+Your job:
+- explain crypto simply
+- help beginners
+- explain risk
+- explain diversification
+- explain RSI and trends
+- provide educational guidance
 
 Never guarantee profits.
-Never give financial certainty.
-Always keep responses beginner friendly.
 """
 
 # ============================================================
-# MAIN AI FUNCTION
+# AI FUNCTION
 # ============================================================
 
 def ask_ai(question, portfolio_data=None):
@@ -51,25 +48,43 @@ def ask_ai(question, portfolio_data=None):
         {portfolio_data}
         """
 
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
+    try:
 
-        messages=[
+        response = client.chat.completions.create(
 
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            },
+            model="gpt-4.1-mini",
 
-            {
-                "role": "user",
-                "content": f"{context}\n\nQUESTION:\n{question}"
-            }
+            messages=[
 
-        ],
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
 
-        temperature=0.7,
-        max_tokens=600
-    )
+                {
+                    "role": "user",
+                    "content": f"{context}\n\nQUESTION:\n{question}"
+                }
 
-    return response.choices[0].message.content
+            ],
+
+            temperature=0.7,
+            max_tokens=500
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+
+        return f"""
+❌ AI Assistant Error
+
+Possible reasons:
+- Invalid API key
+- Billing not enabled
+- OpenAI quota exceeded
+- Wrong model access
+
+Error:
+{str(e)}
+"""
