@@ -271,7 +271,7 @@ def render_header(user):
         "📈 Trading Signals",
         "🔮 Forecast",
         "⚠ Risk",
-        "📉 Charts",
+       "📉 Advanced Charts",
         "🤖 AI Assistant"
     ]
 
