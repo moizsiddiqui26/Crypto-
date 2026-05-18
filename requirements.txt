@@ -2,10 +2,7 @@ streamlit
 pandas
 numpy
 plotly
-scikit-learn
+google-generativeai
+python-dotenv
 requests
-python-dotenv
-matplotlib
-openai
-openai>=1.0.0
-python-dotenv
+scikit-learn
