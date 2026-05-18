@@ -1,24 +1,32 @@
 import streamlit as st
-import os, importlib.util
+import os
+import importlib.util
 import time
+
 from dotenv import load_dotenv
 
-# ✅ FORCE LOAD ENV (FIX EMAIL ISSUE)
+# ============================================================
+# LOAD ENV VARIABLES
+# ============================================================
+
 load_dotenv()
 
-# ✅ DIRECT EMAIL IMPORT (FIX)
-from services.email_service import send_welcome_email
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 
+st.set_page_config(
+    page_title="🚀 Crypto AI Portfolio Manager",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# =========================
-# 🔥 GLOBAL CSS
-# =========================
+# ============================================================
+# GLOBAL CSS
+# ============================================================
+
 st.markdown("""
 <style>
-
-/* =========================
-   PREMIUM AI FINTECH THEME
-========================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -26,79 +34,211 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
-header, #MainMenu, footer {
+/* Hide Streamlit Branding */
+
+header {
     visibility: hidden;
 }
 
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+div[data-testid="stToolbar"] {
+    display: none !important;
+}
+
+/* Main App */
+
 .stApp {
+
     background:
-        radial-gradient(circle at top left, rgba(108,92,231,0.15), transparent 25%),
-        radial-gradient(circle at top right, rgba(0,212,255,0.10), transparent 25%),
-        linear-gradient(180deg, #081120 0%, #0B1020 100%);
+        radial-gradient(circle at top left,
+        rgba(108,92,231,0.15),
+        transparent 25%),
+
+        radial-gradient(circle at top right,
+        rgba(0,212,255,0.10),
+        transparent 25%),
+
+        linear-gradient(
+            180deg,
+            #081120 0%,
+            #0B1020 100%
+        );
+
     color: #F5F7FA;
 }
 
-/* =========================
-   SIDEBAR
-========================= */
+/* Sidebar */
 
 section[data-testid="stSidebar"] {
-    background: rgba(12, 18, 32, 0.95) !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(10,16,32,0.98) 0%,
+            rgba(5,8,18,0.98) 100%
+        ) !important;
+
     border-right: 1px solid rgba(255,255,255,0.06);
-    backdrop-filter: blur(20px);
 }
 
 section[data-testid="stSidebar"] * {
-    color: #F5F7FA !important;
+    color: white !important;
 }
 
-/* =========================
-   GLASS CARD
-========================= */
+/* Buttons */
 
-.glass-card {
-    background: rgba(18, 26, 47, 0.75);
+.stButton > button {
+
+    width: 100%;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    background: rgba(255,255,255,0.04);
+
+    color: white;
+
+    font-weight: 600;
+
+    padding: 0.8rem 1rem;
+
+    transition: all 0.25s ease;
+}
+
+.stButton > button:hover {
+
+    transform: translateY(-2px);
+
+    border: 1px solid rgba(0,212,255,0.20);
+
+    background: rgba(0,212,255,0.08);
+}
+
+/* Inputs */
+
+.stTextInput > div > div > input,
+.stNumberInput input {
+
+    background: rgba(255,255,255,0.04) !important;
+
+    border: 1px solid rgba(255,255,255,0.08) !important;
+
+    border-radius: 12px !important;
+
+    color: white !important;
+}
+
+/* Metric Cards */
+
+[data-testid="metric-container"] {
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(18,26,47,0.92) 0%,
+            rgba(10,16,32,0.88) 100%
+        );
+
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 24px;
-    padding: 24px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-    transition: all 0.3s ease;
-    overflow: hidden;
+
+    padding: 20px;
+
+    border-radius: 22px;
+
+    backdrop-filter: blur(16px);
+
+    box-shadow:
+        0 10px 35px rgba(0,0,0,0.25);
 }
 
-.glass-card:hover {
-    transform: translateY(-5px);
-    border: 1px solid rgba(0,212,255,0.2);
-    box-shadow: 0 14px 50px rgba(0,212,255,0.08);
+/* Dataframes */
+
+[data-testid="stDataFrame"] {
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+</style>
 """, unsafe_allow_html=True)
 
-# =========================
+# ============================================================
 # MODULE LOADER
-# =========================
+# ============================================================
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 def load_module(name, path):
+
     spec = importlib.util.spec_from_file_location(name, path)
+
     module = importlib.util.module_from_spec(spec)
+
     spec.loader.exec_module(module)
+
     return module
 
 
-# =========================
+# ============================================================
 # LOAD MODULES
-# =========================
-auth = load_module("auth", os.path.join(BASE_DIR, "auth", "auth_service.py"))
-ui = load_module("ui", os.path.join(BASE_DIR, "ui", "components.py"))
-live = load_module("live", os.path.join(BASE_DIR, "services", "live_prices.py"))
-db = load_module("db", os.path.join(BASE_DIR, "db", "database.py"))
-alert_engine = load_module("alert_engine", os.path.join(BASE_DIR, "services", "alert_engine.py"))
+# ============================================================
 
+auth = load_module(
+    "auth",
+    os.path.join(BASE_DIR, "auth", "auth_service.py")
+)
 
-# =========================
-# INIT DB
-# =========================
+ui = load_module(
+    "ui",
+    os.path.join(BASE_DIR, "ui", "components.py")
+)
+
+dashboard = load_module(
+    "dashboard",
+    os.path.join(BASE_DIR, "ui", "dashboard.py")
+)
+
+live_prices = load_module(
+    "live_prices",
+    os.path.join(BASE_DIR, "services", "live_prices.py")
+)
+
+db = load_module(
+    "db",
+    os.path.join(BASE_DIR, "db", "database.py")
+)
+
+alert_engine = load_module(
+    "alert_engine",
+    os.path.join(BASE_DIR, "services", "alert_engine.py")
+)
+
+email_service = load_module(
+    "email_service",
+    os.path.join(BASE_DIR, "services", "email_service.py")
+)
+
+# ============================================================
+# INIT DATABASE
+# ============================================================
+
 db.init_db()
+
+# ============================================================
+# IMPORT FUNCTIONS
+# ============================================================
 
 login_user = auth.login_user
 register_user = auth.register_user
@@ -106,44 +246,56 @@ register_user = auth.register_user
 render_header = ui.render_header
 render_ticker = ui.render_ticker
 
-get_live_prices = live.get_live_prices
+get_live_prices = live_prices.get_live_prices
+
 check_alerts = alert_engine.check_alerts
 
+send_welcome_email = email_service.send_welcome_email
 
-# =========================
-# CONFIG
-# =========================
-st.set_page_config(page_title="🚀 Crypto SaaS", layout="wide")
-
-
-# =========================
+# ============================================================
 # SESSION STATE
-# =========================
+# ============================================================
+
 if "auth" not in st.session_state:
     st.session_state.auth = False
 
 if "mode" not in st.session_state:
     st.session_state.mode = "login"
 
-if "last_update" not in st.session_state:
-    st.session_state.last_update = 0
-
 if "prices" not in st.session_state:
     st.session_state.prices = {}
 
+if "last_update" not in st.session_state:
+    st.session_state.last_update = 0
 
-# =========================
-# LOGIN / REGISTER UI
-# =========================
+if "page" not in st.session_state:
+    st.session_state.page = "📊 Dashboard"
+
+# ============================================================
+# LOGIN UI
+# ============================================================
+
 def login_ui():
 
-    if st.session_state.auth:
-        return
-
     st.markdown("""
-    <div style="text-align:center; padding:60px;">
-        <h1 style="color:#00f5ff;">🚀 Crypto SaaS</h1>
-        <p style="color:gray;">Smart Crypto Dashboard</p>
+    <div style="text-align:center;padding-top:60px;padding-bottom:30px;">
+
+        <div style="
+            font-size:62px;
+            font-weight:900;
+            color:white;
+        ">
+            🚀 CRYPTOPORT
+        </div>
+
+        <div style="
+            color:#94A3B8;
+            font-size:18px;
+            margin-top:10px;
+        ">
+            AI-Powered Crypto Intelligence Platform
+        </div>
+
     </div>
     """, unsafe_allow_html=True)
 
@@ -151,108 +303,209 @@ def login_ui():
 
     with col2:
 
-        # ================= LOGIN =================
+        # ====================================================
+        # LOGIN
+        # ====================================================
+
         if st.session_state.mode == "login":
 
-            st.markdown("### 🔐 Login")
+            st.markdown("## 🔐 Login")
 
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
+            email = st.text_input(
+                "Email",
+                placeholder="Enter your email"
+            )
 
-            if st.button("🚀 Login", use_container_width=True):
-                res = login_user(email, password)
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Enter password"
+            )
 
-                if res["success"]:
+            if st.button(
+                "🚀 Login",
+                use_container_width=True
+            ):
+
+                result = login_user(email, password)
+
+                if result["success"]:
+
                     st.session_state.auth = True
                     st.session_state.email = email
-                    st.success("Login successful 🚀")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error(res["msg"])
 
-            if st.button("📝 Register", use_container_width=True):
+                    st.success("Login successful")
+
+                    time.sleep(1)
+
+                    st.rerun()
+
+                else:
+
+                    st.error(result["msg"])
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            if st.button(
+                "📝 Create Account",
+                use_container_width=True
+            ):
+
                 st.session_state.mode = "register"
+
                 st.rerun()
 
-        # ================= REGISTER =================
+        # ====================================================
+        # REGISTER
+        # ====================================================
+
         else:
 
-            st.markdown("### 📝 Create Account")
+            st.markdown("## 📝 Create Account")
 
-            name = st.text_input("Name")
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
+            name = st.text_input(
+                "Full Name",
+                placeholder="Your name"
+            )
 
-            if st.button("✅ Create Account", use_container_width=True):
-                res = register_user(name, email, password)
+            email = st.text_input(
+                "Email Address",
+                placeholder="example@gmail.com"
+            )
 
-                if res["success"]:
-                    st.success("Account created successfully 🎉")
+            password = st.text_input(
+                "Password",
+                type="password"
+            )
 
-                    # ================= EMAIL FIX =================
+            if st.button(
+                "✅ Register",
+                use_container_width=True
+            ):
+
+                result = register_user(
+                    name,
+                    email,
+                    password
+                )
+
+                if result["success"]:
+
+                    st.success("Account created successfully")
+
                     try:
-                        email_sent = send_welcome_email(email)
 
-                        if email_sent:
-                            st.success("📧 Welcome email sent!")
-                        else:
-                            st.warning("⚠ Email not sent (check .env / Gmail App Password)")
+                        sent = send_welcome_email(email)
+
+                        if sent:
+                            st.success("📧 Welcome email sent")
+
                     except Exception as e:
+
                         st.warning(f"Email error: {e}")
 
                     time.sleep(1)
-                    st.session_state.mode = "login"
-                    st.rerun()
-                else:
-                    st.error(res["msg"])
 
-            if st.button("⬅ Back to Login"):
+                    st.session_state.mode = "login"
+
+                    st.rerun()
+
+                else:
+
+                    st.error(result["msg"])
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            if st.button(
+                "⬅ Back to Login",
+                use_container_width=True
+            ):
+
                 st.session_state.mode = "login"
+
                 st.rerun()
 
+# ============================================================
+# MAIN APPLICATION
+# ============================================================
 
-# =========================
-# MAIN APP
-# =========================
 def main_app():
 
-    render_header(st.session_state.email)
+    # ========================================================
+    # HEADER
+    # ========================================================
 
-    now = time.time()
+    render_header(
+        st.session_state.email
+    )
 
-    # ✅ CLEAN REFRESH
-    if now - st.session_state.last_update > 5:
-        st.session_state.prices = get_live_prices()
-        st.session_state.last_update = now
+    # ========================================================
+    # LIVE MARKET REFRESH
+    # ========================================================
+
+    current_time = time.time()
+
+    if current_time - st.session_state.last_update > 5:
+
+        try:
+
+            st.session_state.prices = get_live_prices()
+
+            st.session_state.last_update = current_time
+
+        except Exception as e:
+
+            st.warning(f"Market API Error: {e}")
 
     prices = st.session_state.prices
 
-    # ================= ALERT SYSTEM =================
-    if prices:
-        try:
-            check_alerts(prices)
-        except Exception as e:
-            print("Alert error:", e)
+    # ========================================================
+    # ALERT ENGINE
+    # ========================================================
 
-    # ================= LIVE UI =================
     if prices:
+
+        try:
+
+            check_alerts(prices)
+
+        except Exception as e:
+
+            print("Alert engine error:", e)
+
+    # ========================================================
+    # LIVE TICKER
+    # ========================================================
+
+    if prices:
+
         render_ticker(prices)
+
     else:
-        with st.spinner("⚡ Fetching live prices..."):
+
+        with st.spinner("Fetching live market prices..."):
+
             time.sleep(1)
 
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div style='height:10px'></div>",
+        unsafe_allow_html=True
+    )
 
-    dashboard = load_module("dashboard", os.path.join(BASE_DIR, "ui", "dashboard.py"))
+    # ========================================================
+    # LOAD DASHBOARD ROUTER
+    # ========================================================
+
     dashboard.main()
 
+# ============================================================
+# APP ROUTING
+# ============================================================
 
-# =========================
-# ROUTING
-# =========================
 if not st.session_state.auth:
+
     login_ui()
+
 else:
-    st.empty()
+
     main_app()
