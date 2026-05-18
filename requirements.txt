@@ -7,3 +7,5 @@ requests
 python-dotenv
 matplotlib
 openai
+openai>=1.0.0
+python-dotenv
