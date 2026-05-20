@@ -10,17 +10,17 @@ def render_header(user):
         st.session_state.page = "📊 Dashboard"
 
     # ========================================================
-    # CLEAN PROFESSIONAL CSS
+    # PROFESSIONAL WHITE THEME CSS
     # ========================================================
     st.markdown("""
     <style>
-    /* 1. Eliminate all Streamlit default headers and footers */
+    /* 1. Remove Streamlit default header/footer */
     [data-testid="stHeader"], #MainMenu, footer {
         display: none !important;
         visibility: hidden !important;
     }
 
-    /* 2. Anchor content to the absolute top of the screen */
+    /* 2. Anchor content to the top of the screen */
     .block-container {
         padding-top: 0rem !important;
         padding-left: 0rem !important;
@@ -28,10 +28,10 @@ def render_header(user):
         max-width: 100% !important;
     }
 
-    /* 3. Professional White Navbar Container */
+    /* 3. Professional White Navbar */
     .nav-wrapper {
         background-color: #FFFFFF;
-        padding: 15px 40px;
+        padding: 15px 50px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -39,50 +39,44 @@ def render_header(user):
         position: sticky;
         top: 0;
         z-index: 9999;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* 4. Sidebar Overrides for White Theme */
+    /* 4. Light Sidebar Styling */
     section[data-testid="stSidebar"] {
         background-color: #F8FAFC !important;
         border-right: 1px solid #E2E8F0 !important;
     }
     
     section[data-testid="stSidebar"] * {
-        color: #1E293B !important;
+        color: #334155 !important;
     }
 
-    /* 5. Navigation Button Overrides (Invisible background) */
+    /* 5. Minimalist Nav Buttons */
     div.stButton > button {
         background-color: transparent !important;
-        color: #475569 !important;
+        color: #64748B !important;
         border: none !important;
         font-weight: 500 !important;
-        font-size: 15px !important;
-        padding: 5px 10px !important;
-        transition: color 0.3s ease !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        transition: color 0.2s ease !important;
     }
 
     div.stButton > button:hover {
-        color: #3B82F6 !important;
-        text-decoration: none !important;
+        color: #2563EB !important;
+        background-color: #F1F5F9 !important;
     }
 
-    /* Target the Active Page Button specifically */
-    div.stButton > button:focus:not(:active) {
-        color: #3B82F6 !important;
-        border-bottom: 2px solid #3B82F6 !important;
-    }
-
-    /* 6. Professional Blue CTA Button Style */
-    .cta-button {
-        background-color: #3B82F6;
-        color: white;
-        padding: 8px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-        text-decoration: none;
+    /* 6. High-Contrast CTA (AI Active) */
+    .ai-badge {
+        background-color: #EFF6FF;
+        color: #2563EB;
+        padding: 8px 16px;
+        border-radius: 99px;
+        font-weight: 700;
+        font-size: 11px;
+        border: 1px solid #DBEAFE;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -90,59 +84,43 @@ def render_header(user):
     # ========================================================
     # NAVBAR LAYOUT
     # ========================================================
-    # We use a wrapper div to handle the background/padding
     st.markdown('<div class="nav-wrapper">', unsafe_allow_html=True)
     
-    # Columns for Logo, Nav, and Login/Status
-    col_logo, col_nav, col_cta = st.columns([1.5, 6, 1.5])
+    col_logo, col_nav, col_cta = st.columns([1.5, 7, 1.5])
 
     with col_logo:
         st.markdown("""
-            <div style="display:flex; align-items:center;">
-                <span style="font-size:24px; font-weight:800; color:#0F172A; letter-spacing:-1px;">
-                    CryptoPort
-                </span>
+            <div style="font-size:24px; font-weight:800; color:#0F172A; letter-spacing:-0.5px;">
+                CryptoPort
             </div>
         """, unsafe_allow_html=True)
 
     with col_nav:
         nav_cols = st.columns(len(nav_items))
         for i, item in enumerate(nav_items):
+            # Styling active state
             if nav_cols[i].button(item, key=f"nav_{i}"):
                 st.session_state.page = item
                 st.rerun()
 
     with col_cta:
-        # High-contrast "Active" status or Login button look
-        st.markdown("""
-            <div style="display:flex; justify-content:flex-end;">
-                <a class="cta-button">🟢 AI ACTIVE</a>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div style="display:flex; justify-content:flex-end;"><span class="ai-badge">🟢 AI ACTIVE</span></div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Padding for content below header
-    st.markdown('<div style="height:30px"></div>', unsafe_allow_html=True)
-
-    # Sidebar Logout and User Info
+    # Sidebar Content
     with st.sidebar:
         st.markdown(f"### Welcome, **{user.split('@')[0]}**")
-        if st.button("🚪 Logout Account", use_container_width=True):
+        if st.button("🚪 Sign Out", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
 def render_ticker(prices):
-    # Professional dark container for market data below the white header
-    st.markdown("""
-        <div style="padding: 0 40px;">
-            <h2 style="color:#0F172A; font-weight:700; margin-bottom:20px;">Market Overview</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    # Professional metrics on a light background
+    st.markdown('<div style="padding: 20px 50px 0 50px;"><h3 style="color:#0F172A;">Market Watch</h3></div>', unsafe_allow_html=True)
     if prices:
         cols = st.columns(4)
         for i, (symbol, price) in enumerate(list(prices.items())[:4]):
             with cols[i]:
                 st.metric(symbol, f"${price:,.2f}")
-    st.markdown("---")
+    st.markdown("<hr style='margin: 0 50px;'>", unsafe_allow_html=True)
