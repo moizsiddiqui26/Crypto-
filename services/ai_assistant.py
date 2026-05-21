@@ -3,55 +3,41 @@ import streamlit as st
 
 def ask_ai(user_query, portfolio_context=""):
     """
-    Connects to Google Gemini AI to provide crypto investment advice.
+    Crypto Advisor with Fallback Mode for 403/Region errors.
     """
+    # --- 1. LOCAL FALLBACK KNOWLEDGE (For when API is blocked) ---
+    local_kb = {
+        "bitcoin": "Bitcoin (BTC) is a decentralized digital currency, often called 'Digital Gold'. It works on a public ledger called Blockchain.",
+        "bnb": "BNB is the native coin of the Binance ecosystem, used for trading fee discounts and powering the BNB Smart Chain.",
+        "rsi": "RSI (Relative Strength Index) is a momentum indicator that measures if a coin is 'Overbought' (above 70) or 'Oversold' (below 30).",
+        "portfolio": f"Based on your data: {portfolio_context[:100]}..."
+    }
+
     try:
-        # 1. RETRIEVE API KEY
-        # Ensure 'GOOGLE_API_KEY' is added to your .streamlit/secrets.toml
         api_key = st.secrets.get("GOOGLE_API_KEY")
-        
         if not api_key:
-            return "⚠️ AI Error: Google API Key not found. Please add 'GOOGLE_API_KEY' to your Streamlit Secrets."
+            return "⚠️ Please add your GOOGLE_API_KEY to secrets."
 
-        # 2. CONFIGURE GENERATIVE AI
         genai.configure(api_key=api_key)
-
-        # 3. INITIALIZE MODEL
-        # We use 'gemini-1.5-flash' which is the stable production name.
-        # Avoid using '-latest' if your library version is older.
-        model = genai.GenerativeModel('gemini-2.5-flash')
-
-        # 4. CONSTRUCT THE PROMPT
-        # We provide the AI with your portfolio data for personalized answers.
-        prompt = f"""
-        You are a professional Crypto Investment AI Advisor named 'Gemini Crypto Copilot'.
         
-        CONTEXT (User's Current Portfolio):
-        {portfolio_context if portfolio_context else "The user currently has no recorded holdings."}
-
-        USER QUESTION:
-        {user_query}
-
-        INSTRUCTIONS:
-        - Provide data-driven, concise, and helpful advice.
-        - If the user asks about their specific coins (BTC, BNB, etc.), refer to the Context provided.
-        - Always end with a short disclaimer: 'Note: I am an AI, not a financial advisor.'
-        """
-
-        # 5. GENERATE RESPONSE
+        # Try the most stable model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = f"User Portfolio: {portfolio_context}\n\nQuestion: {user_query}\n\nKeep it short."
         response = model.generate_content(prompt)
-        
-        if response and response.text:
-            return response.text
-        else:
-            return "⚠️ AI Error: The model returned an empty response. Please try rephrasing your question."
+        return response.text
 
     except Exception as e:
         error_msg = str(e)
-        # Specific troubleshooting for common errors
-        if "404" in error_msg:
-            return "❌ AI Error: Model 'gemini-1.5-flash' not found. Ensure your google-generativeai library is updated."
-        elif "API_KEY_INVALID" in error_msg:
-            return "❌ AI Error: Your Google API Key is invalid. Please check it in AI Studio."
-        else:
-            return f"⚠️ AI Assistant Error: {error_msg}"
+        
+        # --- 2. HANDLE 403 DENIED ACCESS ---
+        if "403" in error_msg:
+            # Look for a keyword in the user query to provide a local answer
+            query_lower = user_query.lower()
+            for key in local_kb:
+                if key in query_lower:
+                    return f"📢 **(Local Assistant Mode):** {local_kb[key]}\n\n*Note: Your API is currently blocked (403), using offline knowledge.*"
+            
+            return "❌ **AI Access Denied (403).** This is usually a regional restriction by Google. Please check your AI Studio settings or use a different network/VPN."
+        
+        return f"⚠️ Error: {error_msg}"
