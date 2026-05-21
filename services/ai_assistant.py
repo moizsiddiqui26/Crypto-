@@ -2,42 +2,28 @@ import google.generativeai as genai
 import streamlit as st
 
 def ask_ai(user_query, portfolio_context=""):
-    """
-    Crypto Advisor with Fallback Mode for 403/Region errors.
-    """
-    # --- 1. LOCAL FALLBACK KNOWLEDGE (For when API is blocked) ---
-    local_kb = {
-        "bitcoin": "Bitcoin (BTC) is a decentralized digital currency, often called 'Digital Gold'. It works on a public ledger called Blockchain.",
-        "bnb": "BNB is the native coin of the Binance ecosystem, used for trading fee discounts and powering the BNB Smart Chain.",
-        "rsi": "RSI (Relative Strength Index) is a momentum indicator that measures if a coin is 'Overbought' (above 70) or 'Oversold' (below 30).",
-        "portfolio": f"Based on your data: {portfolio_context[:100]}..."
-    }
-
     try:
         api_key = st.secrets.get("GOOGLE_API_KEY")
         if not api_key:
-            return "⚠️ Please add your GOOGLE_API_KEY to secrets."
+            return "⚠️ Setup Required: Please add a new API Key to your secrets."
 
         genai.configure(api_key=api_key)
+        # Use the 2026 standard model
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
-        # Try the most stable model
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        prompt = f"User Portfolio: {portfolio_context}\n\nQuestion: {user_query}\n\nKeep it short."
-        response = model.generate_content(prompt)
+        response = model.generate_content(f"Context: {portfolio_context}\n\nUser: {user_query}")
         return response.text
 
     except Exception as e:
-        error_msg = str(e)
+        error_str = str(e)
         
-        # --- 2. HANDLE 403 DENIED ACCESS ---
-        if "403" in error_msg:
-            # Look for a keyword in the user query to provide a local answer
-            query_lower = user_query.lower()
-            for key in local_kb:
-                if key in query_lower:
-                    return f"📢 **(Local Assistant Mode):** {local_kb[key]}\n\n*Note: Your API is currently blocked (403), using offline knowledge.*"
+        # Handle the 403 "Project Denied" Error specifically
+        if "403" in error_str:
+            # Check for common crypto questions to provide local answers
+            q = user_query.lower()
+            if "bitcoin" in q or "btc" in q:
+                return "📢 **(Advisor in Safe Mode):** Bitcoin is a decentralized digital asset. Currently, your API project is restricted (403). Please create a new Project in AI Studio to restore full AI features."
             
-            return "❌ **AI Access Denied (403).** This is usually a regional restriction by Google. Please check your AI Studio settings or use a different network/VPN."
-        
-        return f"⚠️ Error: {error_msg}"
+            return "❌ **AI Project Blocked (403):** Google has restricted this project due to a previous security leak. To fix this, please create a *new* project in AI Studio and update your API key."
+            
+        return f"⚠️ Assistant Error: {error_str}"
