@@ -10,11 +10,8 @@ def ask_ai(user_query, portfolio_context=""):
 
         genai.configure(api_key=api_key)
 
-        # FIX: Use 'gemini-1.5-flash' instead of 'gemini-1.5-flash-latest' 
-        # to ensure compatibility with v1 and v1beta endpoints.
         model = genai.GenerativeModel('gemini-1.5-flash')
 
-        # Construct a professional prompt including user portfolio data
         prompt = f"""
         You are a professional Crypto Investment AI Advisor. 
         
@@ -34,7 +31,6 @@ def ask_ai(user_query, portfolio_context=""):
         return response.text
 
     except Exception as e:
-        # Better error reporting to help you debug
         error_msg = str(e)
         if "404" in error_msg:
             return "❌ AI Error: The selected Gemini model is currently unavailable. Please try 'gemini-1.5-flash' or check your region settings."
