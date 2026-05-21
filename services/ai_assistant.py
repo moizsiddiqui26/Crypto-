@@ -19,7 +19,7 @@ def ask_ai(user_query, portfolio_context=""):
         # 3. INITIALIZE MODEL
         # We use 'gemini-1.5-flash' which is the stable production name.
         # Avoid using '-latest' if your library version is older.
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
 
         # 4. CONSTRUCT THE PROMPT
         # We provide the AI with your portfolio data for personalized answers.
