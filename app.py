@@ -1,84 +1,72 @@
 import streamlit as st
-import time
+import smtplib
+from email.mime.text import MIMEText
+from auth.auth_service import login_user, register_user
 
-# 1. Page Config (Must be first)
-st.set_page_config(
-    page_title="CryptoPort | AI Portfolio Tracker",
-    page_icon="🚀",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+def send_registration_email(user_email):
+    """Sends a welcome email upon successful registration."""
+    try:
+        sender_email = st.secrets["EMAIL_USER"]
+        password = st.secrets["EMAIL_PASSWORD"]
+        
+        msg = MIMEText(f"Welcome to CryptoPort AI! Your account ({user_email}) has been successfully created.")
+        msg['Subject'] = "🚀 Welcome to CryptoPort AI"
+        msg['From'] = f"CryptoPort Team <{sender_email}>"
+        msg['To'] = user_email
 
-# 2. Fix: Initialize Session State BEFORE any logic checks
-if "auth" not in st.session_state:
-    st.session_state.auth = False
-if "mode" not in st.session_state:
-    st.session_state.mode = "login"
-if "prices" not in st.session_state:
-    st.session_state.prices = {}
-if "last_update" not in st.session_state:
-    st.session_state.last_update = 0
-if "page" not in st.session_state:
-    st.session_state.page = "📊 Dashboard"
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, user_email, msg.as_string())
+        return True
+    except Exception as e:
+        st.warning(f"Note: Could not send welcome email. ({str(e)})")
+        return False
 
-# 3. Imports
-from auth.auth_service import login_user
-from ui.components import render_header, render_ticker
-from ui import dashboard
-from services.live_prices import get_live_prices
-from db.database import init_db
-
-init_db()
-
-# ============================================================
-# LOGIN UI (CMC Midnight Style)
-# ============================================================
 def login_ui():
+    # Modern Glass-morphism CSS
     st.markdown("""
-        <style> .stApp { background-color: #0B0E11; } </style>
-        <div style="text-align:center; padding: 100px 0 40px 0;">
-            <h1 style="color:white; font-size:48px; font-weight:800; letter-spacing:-1px;">Sign Up Today</h1>
-            <p style="color:#A1A7BB; font-size:18px;">Track your crypto profits and portfolio valuation with AI intelligence.</p>
-        </div>
+        <style>
+        .auth-container { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .stButton>button { width: 100%; border-radius: 8px; height: 3em; transition: 0.3s; }
+        </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([2.5, 3, 2.5])
-    with col2:
-        email = st.text_input("Email Address")
-        password = st.text_input("Password", type="password")
+    with st.container():
+        st.markdown('<div class="auth-container">', unsafe_allow_html=True)
         
-        if st.button("Create your Portfolio", type="primary", use_container_width=True):
-            result = login_user(email, password)
-            if result["success"]:
-                st.session_state.auth = True
-                st.session_state.email = email
-                st.rerun()
-            else:
-                st.error(result["msg"])
+        # Toggle between Login and Register
+        mode = st.radio("Select Action", ["Login", "Create Account"], horizontal=True, label_visibility="collapsed")
+        
+        st.title("🚀 CryptoPort AI" if mode == "Login" else "📝 Join CryptoPort")
+        
+        email = st.text_input("Email Address", placeholder="name@example.com")
+        password = st.text_input("Password", type="password")
 
-# ============================================================
-# MAIN APPLICATION
-# ============================================================
-def main_app():
-    # Render the new professional CMC-style header
-    render_header(st.session_state.email)
-
-    # Market data refresh logic
-    current_time = time.time()
-    if current_time - st.session_state.last_update > 10:
-        try:
-            st.session_state.prices = get_live_prices()
-            st.session_state.last_update = current_time
-        except:
-            pass
-
-    if st.session_state.prices:
-        render_ticker(st.session_state.prices)
-
-    dashboard.main()
-
-# App Routing
-if not st.session_state.auth:
-    login_ui()
-else:
-    main_app()
+        if mode == "Login":
+            if st.button("🚀 Login Now", type="primary"):
+                result = login_user(email, password)
+                if result["success"]:
+                    st.session_state.auth = True
+                    st.session_state.email = email
+                    st.rerun()
+                else:
+                    st.error(result["msg"])
+        
+        else: # Register Mode
+            confirm_pw = st.text_input("Confirm Password", type="password")
+            if st.button("✨ Create My Account", type="primary"):
+                if password != confirm_pw:
+                    st.error("Passwords do not match!")
+                else:
+                    result = register_user(email, password)
+                    if result["success"]:
+                        st.success("Account created successfully!")
+                        send_registration_email(email) # Trigger the email
+                        st.info("A welcome email has been sent to your inbox.")
+                        time.sleep(2)
+                        st.session_state.mode = "login"
+                        st.rerun()
+                    else:
+                        st.error(result["msg"])
+        
+        st.markdown('</div>', unsafe_allow_html=True)
