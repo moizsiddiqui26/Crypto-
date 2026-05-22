@@ -3,14 +3,13 @@ import streamlit.components.v1 as components
 
 def render_advanced_charts():
     st.markdown("# 📉 Trading Terminal")
-    
-    # Selection for the trading pair
+
     symbol = st.selectbox(
         "Trading Pair",
         ["BINANCE:BTCUSDT", "BINANCE:ETHUSDT", "BINANCE:SOLUSDT", "BINANCE:XRPUSDT"]
     )
 
-    # TradingView Widget logic
+    # TradingView Terminal
     html_code = f"""
     <div class="tradingview-widget-container">
       <div id="tradingview_chart"></div>
@@ -28,20 +27,19 @@ def render_advanced_charts():
     """
     components.html(html_code, height=650)
 
-    # --- NEW USER EDUCATION SECTION ---
-    with st.expander("📖 New to Trading? Learn how to read this chart"):
-        st.write("### 🕯️ How to Read Candlesticks")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.success("**Green Candle (Bullish)**")
-            st.write("The price closed **higher** than it opened. Buyers were in control during this period.")
-        with col2:
-            st.error("**Red Candle (Bearish)**")
-            st.write("The price closed **lower** than it opened. Sellers were more aggressive during this period.")
-        
+    # --- NEW USER EDUCATION ---
+    st.markdown("### 🕯️ How to Read Candlestick Charts")
+    
+    col1, col2 = st.columns(2)
+    with col1:
         st.info("""
-        **🔍 Key Elements:**
-        - **The Body:** The thick part shows the price range between the 'Open' and 'Close'.
-        - **The Wicks:** The thin lines above/below show the highest and lowest prices reached.
-        - **Timeframe (D):** Each candle currently represents **1 Day** of trading.
+        **What is a Candlestick?**
+        Unlike a single line, a candle shows the **High, Low, Open,** and **Close** price for a specific time period (like 1 day).
         """)
+        
+
+    with col2:
+        st.success("**🟢 Green Candle**: Price ended higher than it started (Buying pressure).")
+        st.error("**🔴 Red Candle**: Price ended lower than it started (Selling pressure).")
+
+    st.info("💡 **Tip:** Each vertical bar represents **1 Day (D)** of trading. You can change this to 1 Hour (1H) using the chart's top menu.")
