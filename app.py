@@ -1,49 +1,60 @@
 import streamlit as st
-import smtplib
-from email.mime.text import MIMEText
+import time
+
+# Set page config must be the very first command
+st.set_page_config(
+    page_title="🚀 CryptoPort AI",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ============================================================
+# IMPORTS
+# ============================================================
 from auth.auth_service import login_user, register_user
+from ui.components import render_header, render_ticker
+from ui import dashboard
+from services.live_prices import get_live_prices
+from services.alert_engine import check_alerts
+from services.email_service import send_welcome_email
+from db.database import init_db
 
-def send_registration_email(user_email):
-    """Sends a welcome email upon successful registration."""
-    try:
-        sender_email = st.secrets["EMAIL_USER"]
-        password = st.secrets["EMAIL_PASSWORD"]
-        
-        msg = MIMEText(f"Welcome to CryptoPort AI! Your account ({user_email}) has been successfully created.")
-        msg['Subject'] = "🚀 Welcome to CryptoPort AI"
-        msg['From'] = f"CryptoPort Team <{sender_email}>"
-        msg['To'] = user_email
+# Initialize database
+init_db()
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(sender_email, password)
-            server.sendmail(sender_email, user_email, msg.as_string())
-        return True
-    except Exception as e:
-        st.warning(f"Note: Could not send welcome email. ({str(e)})")
-        return False
+# ============================================================
+# SESSION STATE
+# ============================================================
+if "auth" not in st.session_state:
+    st.session_state.auth = False
+if "mode" not in st.session_state:
+    st.session_state.mode = "login"
+if "prices" not in st.session_state:
+    st.session_state.prices = {}
+if "last_update" not in st.session_state:
+    st.session_state.last_update = 0
+if "page" not in st.session_state:
+    st.session_state.page = "📊 Dashboard"
 
+# ============================================================
+# LOGIN UI
+# ============================================================
 def login_ui():
-    # Modern Glass-morphism CSS
     st.markdown("""
-        <style>
-        .auth-container { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .stButton>button { width: 100%; border-radius: 8px; height: 3em; transition: 0.3s; }
-        </style>
+        <div style="text-align:center; padding-top:40px; padding-bottom:20px;">
+            <div style="font-size:52px; font-weight:900; color:white;">🚀 CRYPTOPORT</div>
+            <div style="color:#94A3B8; font-size:16px; margin-top:5px;">AI-Powered Crypto Intelligence</div>
+        </div>
     """, unsafe_allow_html=True)
 
-    with st.container():
-        st.markdown('<div class="auth-container">', unsafe_allow_html=True)
-        
-        # Toggle between Login and Register
-        mode = st.radio("Select Action", ["Login", "Create Account"], horizontal=True, label_visibility="collapsed")
-        
-        st.title("🚀 CryptoPort AI" if mode == "Login" else "📝 Join CryptoPort")
-        
-        email = st.text_input("Email Address", placeholder="name@example.com")
-        password = st.text_input("Password", type="password")
-
-        if mode == "Login":
-            if st.button("🚀 Login Now", type="primary"):
+    col1, col2, col3 = st.columns([2, 4, 2])
+    with col2:
+        if st.session_state.mode == "login":
+            st.markdown('<h2 style="text-align:center;">🔐 Login</h2>', unsafe_allow_html=True)
+            email = st.text_input("Email")
+            password = st.text_input("Password", type="password")
+            if st.button("🚀 Login", use_container_width=True):
                 result = login_user(email, password)
                 if result["success"]:
                     st.session_state.auth = True
@@ -51,22 +62,38 @@ def login_ui():
                     st.rerun()
                 else:
                     st.error(result["msg"])
-        
-        else: # Register Mode
-            confirm_pw = st.text_input("Confirm Password", type="password")
-            if st.button("✨ Create My Account", type="primary"):
-                if password != confirm_pw:
-                    st.error("Passwords do not match!")
-                else:
-                    result = register_user(email, password)
-                    if result["success"]:
-                        st.success("Account created successfully!")
-                        send_registration_email(email) # Trigger the email
-                        st.info("A welcome email has been sent to your inbox.")
-                        time.sleep(2)
-                        st.session_state.mode = "login"
-                        st.rerun()
-                    else:
-                        st.error(result["msg"])
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+            if st.button("📝 Create Account", use_container_width=True):
+                st.session_state.mode = "register"
+                st.rerun()
+        else:
+            # Registration logic...
+            if st.button("⬅ Back to Login", use_container_width=True):
+                st.session_state.mode = "login"
+                st.rerun()
+
+# ============================================================
+# MAIN APP
+# ============================================================
+def main_app():
+    # Renders the professional header
+    render_header(st.session_state.email)
+
+    current_time = time.time()
+    if current_time - st.session_state.last_update > 5:
+        try:
+            st.session_state.prices = get_live_prices()
+            st.session_state.last_update = current_time
+        except Exception:
+            pass
+
+    prices = st.session_state.prices
+    if prices:
+        check_alerts(prices)
+        render_ticker(prices)
+    
+    dashboard.main()
+
+if not st.session_state.auth:
+    login_ui()
+else:
+    main_app()
