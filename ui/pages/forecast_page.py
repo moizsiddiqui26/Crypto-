@@ -27,7 +27,30 @@ def render_forecast(df):
         m1.metric("Predicted Price", f"${result['predicted_price']:.2f}")
         m2.metric("Expected Portfolio Value", f"${result['expected_value']:.2f}")
         m3.metric("Estimated Growth (%)", f"{result['profit_pct']:.2f}%", delta=f"{result['profit_pct']:.2f}%")
+        # ---------------------------------------------------------
+        # THE BEGINNER'S DICTIONARY
+        # ---------------------------------------------------------
+        st.markdown("### 📝 What do these numbers mean?")
+        
+        with st.expander("🔍 Click here to see the Beginner's Explanation"):
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write("**What is ROI?**")
+                st.write("""
+                ROI stands for **Return on Investment**. 
+                - If it's **+5%**, your $1,000 becomes $1,050.
+                - If it's **-5%**, your $1,000 becomes $950.
+                """)
+            with col_b:
+                st.write("**How accurate is this?**")
+                st.write("""
+                Predictions are based on **Historical Trends**. If the market changes suddenly due to news or global events, the AI may not be 100% accurate. 
+                """)
 
+            st.info("💡 **Pro Tip:** Don't put all your money in one coin. Use the 'Risk' page to see which coins are the safest!")
+
+    else:
+        st.error("Not enough data to generate a forecast for this coin. Try selecting a different asset.")
         # ---------------------------------------------------------
         # NEW SECTION: HOW THE AI THINKS
         # ---------------------------------------------------------
