@@ -26,7 +26,7 @@ def render_dashboard(df):
     st.plotly_chart(fig, use_container_width=True)
     # Educational Guide
     with st.expander("📖 New User: How to read this chart"):
-    st.write("This line graph tracks the value of assets over time. The **Vertical Axis (Y)** is the price, and the **Horizontal Axis (X)** is time. Moving upward indicates a 'Bullish' trend (growth).")
+        st.write("This line graph tracks the value of assets over time. The **Vertical Axis (Y)** is the price, and the **Horizontal Axis (X)** is time. Moving upward indicates a 'Bullish' trend (growth).")
     # --- CORRELATION HEATMAP SECTION ---
     st.markdown("---")
     st.subheader("🔗 Assets Correlation Heatmap")
