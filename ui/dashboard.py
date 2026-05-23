@@ -33,6 +33,6 @@ def main():
     elif page == "📈 Trading Signals":
         render_signals(df)
     elif page == "📉 Advanced Charts":
-        render_advanced_charts(df)
+        render_advanced_charts(df)    
     elif page == "🤖 AI Assistant":
         render_chatbot_page(df)
