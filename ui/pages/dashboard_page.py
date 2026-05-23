@@ -4,56 +4,37 @@ import pandas as pd
 
 def render_dashboard(df):
     st.markdown("# 📊 Market Dashboard")
-
-    # Selection Logic
+    
+    # Selection & Filtering
     coins = sorted(df["Crypto"].unique())
     selected = st.multiselect("Select Coins", coins, default=coins[:4])
     filtered = df[df["Crypto"].isin(selected)]
 
-    if filtered.empty:
-        st.warning("Select at least one coin")
-        return
-
-    # Metrics Display
+    # Metrics
     latest = filtered.groupby("Crypto").last().reset_index()
     cols = st.columns(min(4, len(latest)))
     for i, row in latest.head(4).iterrows():
         cols[i].metric(row["Crypto"], f"${row['Close']:.2f}")
 
-    # --- PRICE TREND CHART ---
+    # Chart
     st.subheader("📈 Price Trend History")
     fig = px.line(filtered, x="Date", y="Close", color="Crypto", template="plotly_dark")
     st.plotly_chart(fig, use_container_width=True)
 
-    # --- CORRELATION HEATMAP SECTION ---
-    st.markdown("---")
+    with st.expander("❓ How to read the Price Chart"):
+        st.write("The line chart shows price movement over time. An upward slope means the asset is gaining value. The X-axis is time, and the Y-axis is the price in USD.")
+
+    # Correlation Heatmap
     st.subheader("🔗 Assets Correlation Heatmap")
-    
-    # Calculate Correlation
     returns = filtered.pivot(index="Date", columns="Crypto", values="Close").pct_change()
     corr = returns.corr()
-
-    # Create Heatmap
-    fig2 = px.imshow(
-        corr,
-        text_auto=True, 
-        aspect="auto",
-        template="plotly_dark",
-        color_continuous_scale='RdBu_r' # Red to Blue scale
-    )
+    fig2 = px.imshow(corr, text_auto=True, template="plotly_dark", color_continuous_scale='RdBu_r')
     st.plotly_chart(fig2, use_container_width=True)
 
-    # --- NEW USER DESCRIPTION FOR HEATMAP ---
-    with st.expander("🧩 What is a Correlation Heatmap? (New User Guide)"):
+    with st.expander("🧩 Understanding Correlation (New User Guide)"):
         st.markdown("""
-        The **Correlation Heatmap** shows you how much different cryptocurrencies "mimic" each other's price movements.
-        
-        ### 🧪 How to read the numbers:
-        * **$1.0$ (Perfect Correlation):** If two coins have a score of $1.0$, they move exactly the same. When one goes up, the other follows.
-        * **$0.0$ (No Correlation):** The coins move independently. The price of one has no predictable effect on the other.
-        * **$-1.0$ (Inverse Correlation):** The coins move in opposite directions. When one goes up, the other tends to go down.
-        
-        ### 💡 Why does this matter?
-        * **Diversification:** If all your coins have a $0.9$ or $1.0$ correlation, your whole portfolio will drop at the same time during a crash. 
-        * **Risk Management:** Investors often look for coins with **low correlation** (closer to $0$) to "spread their risk" so that if one coin performs poorly, others might stay stable.
+        * **1.0 (Same):** Coins move together. High risk if they both drop.
+        * **0.0 (Independent):** No relationship between their prices.
+        * **-1.0 (Opposite):** When one goes up, the other goes down.
+        * **Why it matters:** Diversity! Try to hold assets that don't all move in perfect sync to protect your portfolio.
         """)
