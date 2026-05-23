@@ -49,8 +49,6 @@ def render_forecast(df):
 
             st.info("💡 **Pro Tip:** Don't put all your money in one coin. Use the 'Risk' page to see which coins are the safest!")
 
-    else:
-        st.error("Not enough data to generate a forecast for this coin. Try selecting a different asset.")
         # ---------------------------------------------------------
         # NEW SECTION: HOW THE AI THINKS
         # ---------------------------------------------------------
