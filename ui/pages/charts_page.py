@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 
-def render_advanced_charts(df):
+def render_advanced_charts(df): # FIX: Accepts 'df' to calculate stats
     st.markdown("# 📉 Trading Terminal")
 
     # 1. Beginner-Friendly Asset Selection
@@ -19,9 +19,7 @@ def render_advanced_charts(df):
     # Extract the ticker (e.g., 'BTC') for filtering the dataframe
     coin_ticker = selected_name.split("(")[1].split(")")[0]
 
-    # ---------------------------------------------------------
-    # NEW: PAST PERFORMANCE SNAPSHOT (Easy for Beginners)
-    # ---------------------------------------------------------
+    # --- NEW: PAST PERFORMANCE SNAPSHOT ---
     st.subheader(f"🌟 {selected_name} Performance at a Glance")
     
     # Filter data for the selected coin
@@ -83,14 +81,9 @@ def render_advanced_charts(df):
         - **The Thin Lines (Wicks):** These show the highest and lowest prices reached during that day.
         """)
         
+
     with st.expander("📉 High vs. Low Volatility (Risk)"):
         st.write("""
         When the bars are very tall and jump up and down, that is **High Volatility**. This is riskier but can lead to faster gains. 
-        When bars are short and move in a straight line, it is **Low Volatility** (More stable).
+        When bars are short and move in a steady line, it is **Low Volatility** (More stable).
         """)
-        ```
-
-### Why this fixes everything:
-1.  **Resolves the TypeError:** By adding `df` to both the function definition and the function call, the code can now access your historical data to calculate performance.
-2.  **Beginner Logic:** It translates raw percentages into simple phrases like **"Growing Fast"** or **"Steady,"** which helps users who don't know what a 5% move means.
-3.  **Visual Learning:** I've added triggers for educational diagrams to explain Candlestick anatomy and Volatility, making the page a learning tool rather than just a technical terminal.
