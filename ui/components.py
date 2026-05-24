@@ -1,5 +1,6 @@
 import streamlit as st
 
+    
 def render_header(user_email):
     """
     Renders a professional, high-end navigation header with a 
@@ -67,6 +68,11 @@ def render_header(user_email):
             <div class="header-title">
                 🚀 CRYPTOPORT <span style="font-size:10px; color:#94A3B8; font-weight:400; margin-left:5px;">AI ELITE</span>
             </div>
+            nav_items = [
+            "📊 Dashboard", "👤 Portfolio", "📈 Trading Signals", 
+            "🔮 Forecast", "⚠ Risk", "📉 Advanced Charts", "🤖 AI Assistant"
+             ]
+
             <div class="user-badge">
                 <span class="status-dot"></span>
                 <span>LIVE</span> | 👤 """ + str(user_email) + """
