@@ -1,43 +1,38 @@
 import streamlit as st
 
 
-# ======================================================
-# HEADER COMPONENT
-# ======================================================
+# =========================================================
+# HEADER
+# =========================================================
 def render_header(user_email):
 
-    # Default page
+    # Default Page
     if "page" not in st.session_state:
         st.session_state.page = "📊 Dashboard"
 
-    # ==================================================
-    # CUSTOM CSS
-    # ==================================================
+    # =====================================================
+    # CSS
+    # =====================================================
     st.markdown("""
     <style>
 
-    /* Hide Streamlit Sidebar */
+    /* Hide Sidebar */
     section[data-testid="stSidebar"]{
         display:none;
-    }
-
-    /* Remove Extra Padding */
-    .block-container{
-        padding-top:1rem;
     }
 
     /* Main Header */
     .custom-header{
         background:linear-gradient(90deg,#0f0c29,#302b63,#24243e);
-        padding:22px 30px;
-        border-radius:0px 0px 20px 20px;
+        padding:20px 30px;
+        border-radius:0 0 20px 20px;
         border-bottom:2px solid #00ffcc;
         margin-top:-20px;
         margin-bottom:25px;
-        box-shadow:0px 4px 20px rgba(0,0,0,0.45);
+        box-shadow:0 4px 20px rgba(0,0,0,0.45);
     }
 
-    /* Top Row */
+    /* Header Row */
     .header-top{
         display:flex;
         justify-content:space-between;
@@ -51,37 +46,34 @@ def render_header(user_email):
         color:white;
         font-size:34px;
         font-weight:800;
-        letter-spacing:1px;
         display:flex;
         align-items:center;
         gap:10px;
-        font-family:'Inter',sans-serif;
+        font-family:sans-serif;
     }
 
-    /* AI ELITE Tag */
+    /* AI Tag */
     .elite-tag{
-        color:#94A3B8;
         font-size:11px;
+        color:#94A3B8;
         letter-spacing:2px;
         font-weight:500;
-        margin-left:5px;
     }
 
     /* User Badge */
     .user-badge{
         background:rgba(255,255,255,0.08);
+        border:1px solid rgba(0,255,204,0.3);
         padding:10px 18px;
         border-radius:25px;
+
         color:#00ffcc;
         font-size:14px;
         font-weight:600;
-        border:1px solid rgba(0,255,204,0.35);
 
         display:flex;
         align-items:center;
         gap:10px;
-
-        backdrop-filter:blur(8px);
     }
 
     /* Live Dot */
@@ -94,7 +86,6 @@ def render_header(user_email):
         animation:pulse 1.5s infinite;
     }
 
-    /* Pulse Animation */
     @keyframes pulse{
 
         0%{
@@ -104,7 +95,7 @@ def render_header(user_email):
 
         70%{
             transform:scale(1);
-            box-shadow:0 0 0 12px rgba(0,255,204,0);
+            box-shadow:0 0 0 10px rgba(0,255,204,0);
         }
 
         100%{
@@ -113,14 +104,13 @@ def render_header(user_email):
         }
     }
 
-    /* Navigation Buttons */
+    /* Buttons */
     div.stButton > button{
         background:rgba(255,255,255,0.03);
         color:white;
-        border:1px solid rgba(255,255,255,0.12);
+        border:1px solid rgba(255,255,255,0.1);
         border-radius:12px;
         padding:10px;
-        font-weight:500;
         transition:0.3s ease;
     }
 
@@ -128,15 +118,14 @@ def render_header(user_email):
         border:1px solid #00ffcc;
         color:#00ffcc;
         transform:translateY(-2px);
-        box-shadow:0 0 12px rgba(0,255,204,0.25);
     }
 
     </style>
     """, unsafe_allow_html=True)
 
-    # ==================================================
+    # =====================================================
     # HEADER HTML
-    # ==================================================
+    # =====================================================
     header_html = f"""
     <div class="custom-header">
 
@@ -161,53 +150,53 @@ def render_header(user_email):
     </div>
     """
 
-    # IMPORTANT FIX
+    # ONLY THIS
     st.markdown(header_html, unsafe_allow_html=True)
 
-    # ==================================================
-    # NAVIGATION MENU
-    # ==================================================
-    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    # =====================================================
+    # NAVIGATION
+    # =====================================================
+    c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
 
-    with col1:
+    with c1:
         if st.button("📊 Dashboard", use_container_width=True):
             st.session_state.page = "📊 Dashboard"
             st.rerun()
 
-    with col2:
+    with c2:
         if st.button("👤 Portfolio", use_container_width=True):
             st.session_state.page = "👤 Portfolio"
             st.rerun()
 
-    with col3:
+    with c3:
         if st.button("🔮 Forecast", use_container_width=True):
             st.session_state.page = "🔮 Forecast"
             st.rerun()
 
-    with col4:
+    with c4:
         if st.button("⚠ Risk", use_container_width=True):
             st.session_state.page = "⚠ Risk"
             st.rerun()
 
-    with col5:
+    with c5:
         if st.button("📈 Signals", use_container_width=True):
             st.session_state.page = "📈 Trading Signals"
             st.rerun()
 
-    with col6:
+    with c6:
         if st.button("🤖 AI Assistant", use_container_width=True):
             st.session_state.page = "🤖 AI Assistant"
             st.rerun()
 
-    with col7:
+    with c7:
         if st.button("🚪 Logout", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
 
-# ======================================================
-# TICKER COMPONENT
-# ======================================================
+# =========================================================
+# TICKER
+# =========================================================
 def render_ticker(prices):
 
     if not prices:
@@ -226,8 +215,7 @@ def render_ticker(prices):
         ticker_items += f"""
         <span style="margin-right:40px;font-weight:bold;">
 
-            {coin.upper()}:
-
+            {coin.upper()} :
             <span style="color:white;">
                 ${price:,.2f}
             </span>
@@ -246,7 +234,6 @@ def render_ticker(prices):
         border-radius:10px;
         overflow:hidden;
         margin-bottom:20px;
-        border:1px solid rgba(255,255,255,0.06);
     ">
 
         <marquee scrollamount="5"
