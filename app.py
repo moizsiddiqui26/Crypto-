@@ -55,22 +55,13 @@ if "name" not in st.session_state:
 # LOGIN / REGISTER UI
 # ============================================================
 def login_ui():
-
+    # FIXED: Cleaned up HTML string to prevent raw code rendering
     st.markdown("""
         <div style="text-align:center; padding-top:40px; padding-bottom:20px;">
-            <div style="
-                font-size:52px;
-                font-weight:900;
-                color:white;
-            ">
+            <div style="font-size:52px; font-weight:900; color:white;">
                 🚀 CRYPTOPORT
             </div>
-
-            <div style="
-                color:#94A3B8;
-                font-size:16px;
-                margin-top:5px;
-            ">
+            <div style="color:#94A3B8; font-size:16px; margin-top:5px;">
                 AI-Powered Crypto Intelligence
             </div>
         </div>
@@ -79,146 +70,66 @@ def login_ui():
     col1, col2, col3 = st.columns([2, 4, 2])
 
     with col2:
-
-        # ====================================================
-        # LOGIN MODE
-        # ====================================================
+        # --- LOGIN MODE ---
         if st.session_state.mode == "login":
+            st.markdown('<h2 style="text-align:center;">🔐 Login</h2>', unsafe_allow_html=True)
 
-            st.markdown(
-                '<h2 style="text-align:center;">🔐 Login</h2>',
-                unsafe_allow_html=True
-            )
+            email = st.text_input("Email", key="login_email")
+            password = st.text_input("Password", type="password", key="login_pass")
 
-            email = st.text_input(
-                "Email",
-                key="login_email"
-            )
-
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="login_pass"
-            )
-
-            if st.button(
-                "🚀 Login",
-                use_container_width=True
-            ):
-
+            if st.button("🚀 Login", use_container_width=True):
                 if not email or not password:
                     st.warning("Please fill all fields.")
-
                 else:
                     result = login_user(email, password)
-
                     if result["success"]:
-
                         st.session_state.auth = True
                         st.session_state.email = email
-
                         if "user" in result:
                             st.session_state.name = result["user"]["name"]
-
                         st.success("Login Successful!")
-
                         time.sleep(1)
-
                         st.rerun()
-
                     else:
                         st.error(result["msg"])
 
-            if st.button(
-                "📝 Create Account",
-                use_container_width=True
-            ):
+            if st.button("📝 Create Account", use_container_width=True):
                 st.session_state.mode = "register"
                 st.rerun()
 
-        # ====================================================
-        # REGISTER MODE
-        # ====================================================
+        # --- REGISTER MODE ---
         else:
+            st.markdown('<h2 style="text-align:center;">📝 Register</h2>', unsafe_allow_html=True)
 
-            st.markdown(
-                '<h2 style="text-align:center;">📝 Register</h2>',
-                unsafe_allow_html=True
-            )
+            new_name = st.text_input("Full Name", key="reg_name")
+            new_email = st.text_input("Choose Email", key="reg_email")
+            new_password = st.text_input("Choose Password", type="password", key="reg_pass")
+            confirm_password = st.text_input("Confirm Password", type="password", key="reg_conf")
 
-            new_name = st.text_input(
-                "Full Name",
-                key="reg_name"
-            )
-
-            new_email = st.text_input(
-                "Choose Email",
-                key="reg_email"
-            )
-
-            new_password = st.text_input(
-                "Choose Password",
-                type="password",
-                key="reg_pass"
-            )
-
-            confirm_password = st.text_input(
-                "Confirm Password",
-                type="password",
-                key="reg_conf"
-            )
-
-            if st.button(
-                "✅ Create Account",
-                use_container_width=True
-            ):
-
-                # =========================
-                # VALIDATIONS
-                # =========================
+            if st.button("✅ Create Account", use_container_width=True):
                 if not new_name or not new_email or not new_password:
                     st.warning("Please fill in all fields.")
-
                 elif new_password != confirm_password:
                     st.error("Passwords do not match!")
-
                 elif len(new_password) < 6:
                     st.error("Password must be at least 6 characters.")
-
                 else:
-
-                    # =========================
-                    # REGISTER USER
-                    # =========================
-                    result = register_user(
-                        new_name,
-                        new_email,
-                        new_password
-                    )
-
+                    result = register_user(new_name, new_email, new_password)
                     if result["success"]:
-
                         st.success("✅ Account created successfully!")
-
-                        # Send welcome email
+                        # Send welcome email notification
                         try:
                             send_welcome_email(new_email)
                         except Exception as e:
-                            print("Email Error:", e)
-
+                            print(f"Email Error: {e}")
+                        
                         time.sleep(1)
-
                         st.session_state.mode = "login"
-
                         st.rerun()
-
                     else:
                         st.error(result["msg"])
 
-            if st.button(
-                "⬅ Back to Login",
-                use_container_width=True
-            ):
+            if st.button("⬅ Back to Login", use_container_width=True):
                 st.session_state.mode = "login"
                 st.rerun()
 
@@ -226,38 +137,28 @@ def login_ui():
 # MAIN APP
 # ============================================================
 def main_app():
-
     render_header(st.session_state.email)
 
     current_time = time.time()
-
     # Auto refresh prices every 5 seconds
     if current_time - st.session_state.last_update > 5:
-
         try:
             st.session_state.prices = get_live_prices()
             st.session_state.last_update = current_time
-
         except Exception as e:
-            print("Price Fetch Error:", e)
+            print(f"Price Fetch Error: {e}")
 
     prices = st.session_state.prices
 
-    # ========================================================
     # ALERTS + TICKER
-    # ========================================================
     if prices:
-
         try:
             check_alerts(prices)
         except Exception as e:
-            print("Alert Error:", e)
-
+            print(f"Alert Error: {e}")
         render_ticker(prices)
 
-    # ========================================================
-    # DASHBOARD
-    # ========================================================
+    # Route to dashboard
     dashboard.main()
 
 # ============================================================
