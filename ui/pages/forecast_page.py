@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 from services.forecast_engine import get_forecast_summary
 
 def render_forecast(df):
@@ -16,12 +17,7 @@ def render_forecast(df):
         st.markdown("### Hypothetical Investment ($)")
         amount = st.number_input("", value=1000.0, label_visibility="collapsed")
 
-    # --- 2. FUTURE FORECAST RESULTS ---
-    st.markdown("---")
-    st.markdown("### 🚀 Future Forecast (Next 7 Days)")
-    
     # Process data for the specific coin
-    # Grouping by Date ensures we have one unique price per day
     coin_df = df[df["Crypto"] == coin].copy()
     coin_df['Date'] = pd.to_datetime(coin_df['Date']).dt.normalize()
     coin_df = coin_df.groupby('Date')['Close'].mean().reset_index().sort_values("Date")
@@ -30,7 +26,10 @@ def render_forecast(df):
         st.warning("⚠️ Insufficient historical data for this asset.")
         return
 
-    # Call the engine for future prediction
+    # --- 2. FUTURE FORECAST RESULTS ---
+    st.markdown("---")
+    st.markdown("### 🚀 Future Forecast (Next 7 Days)")
+    
     result = get_forecast_summary(coin_df, amount, 7)
     
     f1, f2, f3 = st.columns(3)
@@ -62,20 +61,16 @@ def render_forecast(df):
     st.markdown("---")
     st.markdown("### 🏆 AI Performance Review (Last 7 Working Days)")
     
-    # Backtesting Logic: Hide the last 7 days and predict them
     train_data = coin_df.iloc[:-7].reset_index(drop=True)
     actual_last_7 = coin_df.iloc[-7:].reset_index(drop=True)
     
-    # Train model on past data
     X_train = np.arange(len(train_data)).reshape(-1, 1)
     y_train = train_data["Close"]
     model = LinearRegression().fit(X_train, y_train)
     
-    # Predict the 7 days that already happened
     X_test = np.arange(len(train_data), len(train_data) + 7).reshape(-1, 1)
     predicted_last_7 = model.predict(X_test)
 
-    # Create Table with Correct Unique Dates
     comparison_df = pd.DataFrame({
         "Date": actual_last_7["Date"].dt.strftime('%Y-%m-%d'),
         "Actual Price": actual_last_7["Close"].values,
@@ -84,7 +79,6 @@ def render_forecast(df):
     
     comparison_df["Difference (%)"] = ((comparison_df["AI Prediction"] - comparison_df["Actual Price"]) / comparison_df["Actual Price"]) * 100
     
-    # Styling for the table
     def style_diff(val):
         color = '#ff4b4b' if abs(val) > 5 else '#00ffcc'
         return f'color: {color}; font-weight: bold;'
@@ -97,9 +91,29 @@ def render_forecast(df):
 
     st.table(styled_table)
 
-    # Accuracy Summary Metrics
-    avg_err = comparison_df["Difference (%)"].abs().mean()
+    # --- 5. FIXED ACCURACY METRICS ---
+    # 1. Calculate Average Deviation
+    avg_err_val = comparison_df["Difference (%)"].abs().mean()
+    
+    # 2. Calculate R2 Score (Trend Strength)
+    r2_val = r2_score(actual_last_7["Close"], predicted_last_7)
+    
+    # 3. Calculate Directional Accuracy
+    correct_dir = 0
+    for i in range(1, len(comparison_df)):
+        act_up = actual_last_7["Close"].iloc[i] > actual_last_7["Close"].iloc[i-1]
+        pred_up = predicted_last_7[i] > predicted_last_7[i-1]
+        if act_up == pred_up: correct_dir += 1
+    dir_acc_val = int((correct_dir / 6) * 100)
+
+    # Display Metrics
     m1, m2, m3 = st.columns(3)
-    m1.metric("Avg. Deviation", f"{avg_error:.2f}%", help="Lower is better. Shows average gap between AI and Truth.")
-    m2.metric("Trend Strength (R²)", f"{max(0, r2*100):.1f}%", help="Closer to 100% means the asset is following a perfect linear path.")
-    m3.metric("Directional Accuracy", f"{dir_acc}%", help="How often the AI correctly guessed 'Up' vs 'Down'.")
+    m1.metric("Avg. Deviation", f"{avg_err_val:.2f}%", 
+              help="Lower is better. Shows average gap between AI and Truth.")
+    
+    m2.metric("Trend Strength (R²)", f"{max(0, r2_val*100):.1f}%", 
+              help="Closer to 100% means the asset is following a perfect linear path.")
+    
+    m3.metric("Directional Accuracy", f"{dir_acc_val}%", 
+              help="How often the AI correctly guessed 'Up' vs 'Down'.")
+    
