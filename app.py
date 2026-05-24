@@ -12,7 +12,7 @@ st.set_page_config(
 # ============================================================
 # IMPORTS
 # ============================================================
-from auth_service import login_user, register_user
+from auth.auth_service import login_user, register_user
 from ui.components import render_header, render_ticker
 from ui import dashboard
 from services.live_prices import get_live_prices
