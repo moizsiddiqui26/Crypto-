@@ -1,139 +1,226 @@
 import streamlit as st
 
 
-def render_header(user_email):
-    """
-    Professional Top Navigation Header
-    """
+# ============================================
+# PAGE CONFIG
+# ============================================
+st.set_page_config(
+    page_title="CryptoPort AI",
+    page_icon="🚀",
+    layout="wide"
+)
 
-    # ---------------------------
-    # Default Session State
-    # ---------------------------
+
+# ============================================
+# HEADER COMPONENT
+# ============================================
+def render_header(user_email):
+
+    # Default page
     if "page" not in st.session_state:
         st.session_state.page = "📊 Dashboard"
 
-    # ---------------------------
-    # Custom CSS
-    # ---------------------------
+    # ============================================
+    # GLOBAL CSS
+    # ============================================
     st.markdown("""
     <style>
 
-    /* Hide Streamlit Sidebar */
+    /* ============================================
+       FULL WIDTH LAYOUT
+    ============================================ */
+
+    .main .block-container {
+        max-width: 100% !important;
+        padding-top: 0rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    /* Hide Streamlit Menu + Sidebar */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+
     section[data-testid="stSidebar"] {
         display: none;
     }
 
-    /* Remove Streamlit Top Padding */
-    .block-container {
-        padding-top: 1rem;
-    }
+    /* ============================================
+       HEADER
+    ============================================ */
 
-    /* Main Header */
     .custom-header {
-        background: linear-gradient(90deg, #0f0c29, #302b63, #24243e);
-        padding: 18px 28px;
+        width: 100%;
+        background: linear-gradient(
+            135deg,
+            #0f0c29,
+            #302b63,
+            #24243e
+        );
+
         border-radius: 0px 0px 18px 18px;
+        padding: 24px 30px;
         border-bottom: 2px solid #00ffcc;
-        margin-top: -20px;
-        margin-bottom: 22px;
-        box-shadow: 0px 4px 20px rgba(0,0,0,0.5);
+
+        margin-top: -15px;
+        margin-bottom: 18px;
+
+        box-shadow: 0px 8px 30px rgba(0,0,0,0.45);
     }
 
-    /* Top Row */
     .header-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 20px;
     }
 
-    /* Logo */
+    /* ============================================
+       LOGO
+    ============================================ */
+
     .header-title {
-        color: white;
-        font-size: 32px;
-        font-weight: 800;
-        letter-spacing: 1px;
-        font-family: 'Inter', sans-serif;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+
+        color: white;
+        font-size: 38px;
+        font-weight: 800;
+        letter-spacing: 1px;
+
+        font-family: "Inter", sans-serif;
     }
 
-    /* AI ELITE Tag */
     .elite-tag {
         font-size: 11px;
         color: #94A3B8;
         font-weight: 500;
-        letter-spacing: 2px;
-        margin-left: 5px;
+        letter-spacing: 3px;
+
+        margin-top: 6px;
     }
 
-    /* User Badge */
+    /* ============================================
+       USER BADGE
+    ============================================ */
+
     .user-badge {
-        background: rgba(255,255,255,0.08);
-        padding: 10px 18px;
-        border-radius: 25px;
-        color: #00ffcc;
-        font-size: 14px;
-        font-weight: 600;
-        border: 1px solid rgba(0,255,204,0.35);
         display: flex;
         align-items: center;
         gap: 10px;
-        backdrop-filter: blur(10px);
+
+        background: rgba(255,255,255,0.08);
+
+        padding: 12px 18px;
+
+        border-radius: 40px;
+
+        border: 1px solid rgba(0,255,204,0.25);
+
+        color: #00ffcc;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        backdrop-filter: blur(12px);
     }
 
-    /* Live Dot */
+    /* ============================================
+       LIVE DOT
+    ============================================ */
+
     .status-dot {
-        height: 10px;
         width: 10px;
-        background-color: #00ffcc;
+        height: 10px;
+
         border-radius: 50%;
-        display: inline-block;
-        box-shadow: 0 0 10px #00ffcc;
+        background: #00ffcc;
+
+        box-shadow: 0 0 12px #00ffcc;
+
         animation: pulse 1.5s infinite;
     }
 
     @keyframes pulse {
+
         0% {
             transform: scale(0.95);
             box-shadow: 0 0 0 0 rgba(0,255,204,0.7);
         }
+
         70% {
             transform: scale(1);
             box-shadow: 0 0 0 12px rgba(0,255,204,0);
         }
+
         100% {
             transform: scale(0.95);
             box-shadow: 0 0 0 0 rgba(0,255,204,0);
         }
     }
 
-    /* Navigation Buttons */
+    /* ============================================
+       NAV BUTTONS
+    ============================================ */
+
     div.stButton > button {
+        width: 100%;
+
         background: rgba(255,255,255,0.03);
+
         color: white;
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 12px;
-        padding: 10px;
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        border-radius: 14px;
+
+        padding: 12px;
+
+        font-size: 15px;
         font-weight: 500;
-        transition: 0.3s ease;
+
+        transition: all 0.3s ease;
     }
 
     div.stButton > button:hover {
-        border: 1px solid #00ffcc;
-        color: #00ffcc;
+
+        color: #00ffcc !important;
+
+        border: 1px solid #00ffcc !important;
+
         transform: translateY(-2px);
-        box-shadow: 0px 0px 12px rgba(0,255,204,0.25);
+
+        box-shadow: 0px 0px 15px rgba(0,255,204,0.25);
+    }
+
+    /* ============================================
+       MOBILE RESPONSIVE
+    ============================================ */
+
+    @media (max-width: 768px) {
+
+        .header-title {
+            font-size: 26px;
+        }
+
+        .user-badge {
+            width: 100%;
+            justify-content: center;
+        }
+
     }
 
     </style>
     """, unsafe_allow_html=True)
 
-    # ---------------------------
-    # Header HTML
-    # ---------------------------
+    # ============================================
+    # HEADER HTML
+    # ============================================
+
     header_html = f"""
     <div class="custom-header">
 
@@ -148,7 +235,8 @@ def render_header(user_email):
 
             <div class="user-badge">
                 <span class="status-dot"></span>
-                <span>LIVE</span> |
+                <span>LIVE</span>
+                <span>|</span>
                 <span>👤 {user_email}</span>
             </div>
 
@@ -157,53 +245,55 @@ def render_header(user_email):
     </div>
     """
 
+    # IMPORTANT FIX
     st.markdown(header_html, unsafe_allow_html=True)
 
-    # ---------------------------
-    # Navigation Menu
-    # ---------------------------
-    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    # ============================================
+    # NAVIGATION
+    # ============================================
 
-    with col1:
-        if st.button("📊 Dashboard", use_container_width=True):
+    c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
+
+    with c1:
+        if st.button("📊 Dashboard"):
             st.session_state.page = "📊 Dashboard"
             st.rerun()
 
-    with col2:
-        if st.button("👤 Portfolio", use_container_width=True):
+    with c2:
+        if st.button("👤 Portfolio"):
             st.session_state.page = "👤 Portfolio"
             st.rerun()
 
-    with col3:
-        if st.button("🔮 Forecast", use_container_width=True):
+    with c3:
+        if st.button("🔮 Forecast"):
             st.session_state.page = "🔮 Forecast"
             st.rerun()
 
-    with col4:
-        if st.button("⚠ Risk", use_container_width=True):
+    with c4:
+        if st.button("⚠ Risk"):
             st.session_state.page = "⚠ Risk"
             st.rerun()
 
-    with col5:
-        if st.button("📈 Signals", use_container_width=True):
-            st.session_state.page = "📈 Trading Signals"
+    with c5:
+        if st.button("📈 Signals"):
+            st.session_state.page = "📈 Signals"
             st.rerun()
 
-    with col6:
-        if st.button("🤖 AI Assistant", use_container_width=True):
+    with c6:
+        if st.button("🤖 AI Assistant"):
             st.session_state.page = "🤖 AI Assistant"
             st.rerun()
 
-    with col7:
-        if st.button("🚪 Logout", use_container_width=True):
+    with c7:
+        if st.button("🚪 Logout"):
             st.session_state.auth = False
             st.rerun()
 
 
+# ============================================
+# TICKER
+# ============================================
 def render_ticker(prices):
-    """
-    Real-Time Crypto Price Ticker
-    """
 
     if not prices:
         return
@@ -216,29 +306,33 @@ def render_ticker(prices):
         change = details["change_24h"]
 
         color = "#00ffcc" if change >= 0 else "#ff4b4b"
+
         symbol = "▲" if change >= 0 else "▼"
 
         ticker_items += f"""
-            <span style="margin-right:40px; font-weight:bold;">
-                {coin.upper()} :
-                <span style="color:white;">
-                    ${price:,.2f}
-                </span>
+        <span style="margin-right:40px; font-weight:bold;">
+            {coin.upper()}:
 
-                <span style="color:{color};">
-                    {symbol} {abs(change):.2f}%
-                </span>
+            <span style="color:white;">
+                ${price:,.2f}
             </span>
+
+            <span style="color:{color};">
+                {symbol} {abs(change):.2f}%
+            </span>
+        </span>
         """
 
     st.markdown(f"""
     <div style="
+        width:100%;
         background: rgba(255,255,255,0.04);
-        padding: 10px 0;
-        border-radius: 10px;
+        padding: 12px 0;
+        border-radius: 12px;
         overflow: hidden;
+        margin-top: 15px;
         margin-bottom: 20px;
-        border: 1px solid rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.05);
     ">
 
         <marquee scrollamount="5"
