@@ -1,35 +1,80 @@
 import streamlit as st
-import time
-from ai_assistant import ask_ai  # Import the new Groq logic
+import pandas as pd
+from services.ai_engine import get_ai_response
 
-def render_chatbot():
-    st.markdown('<div class="section-title">🤖 AI Crypto Assistant (Groq Powered)</div>', unsafe_allow_html=True)
-    st.info("💡 **Speed Update:** Now powered by Groq Llama 3 for real-time market analysis.")
+def render_chatbot(df):
+    st.markdown("# 🤖 AI Investment Assistant")
 
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = [
-            {"role": "assistant", "content": "Hi! I'm your AI Crypto Advisor. How can I help you invest safely today?"}
-        ]
+    # --- NEW USER GUIDE (Beginner Friendly) ---
+    with st.expander("📖 New User Guide: How to use this AI"):
+        st.markdown("""
+        ### Welcome to your AI Copilot! 
+        You don't need to be a math genius or a pro trader. Think of this AI as a **financial translator**.
+        
+        **What can you ask?**
+        - **"Explain Bitcoin like I'm 5"** (Great for basics)
+        - **"Is it a good time to buy SOL?"** (AI analyzes the charts for you)
+        - **"What is my portfolio risk?"** (AI looks at your current balance)
+        """)
+        
+        st.info("💡 **Pro Tip:** The more specific you are, the better the answer. Instead of 'Buy BTC?', try 'Is BTC a good long-term hold given its current volatility?'")
 
-    # Display History
-    for msg in st.session_state.chat_history:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    st.markdown("---")
 
-    # Handle Input
-    if prompt := st.chat_input("Ask about Bitcoin, Solana, or market trends..."):
-        st.session_state.chat_history.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    # --- AI COMMAND CENTER ---
+    col_chat, col_tools = st.columns([3, 1])
 
-        with st.chat_message("assistant"):
-            with st.spinner("Groq is analyzing..."):
-                # Call the real AI engine
-                response = ask_ai(prompt)
+    with col_tools:
+        st.markdown("### ⚡ Quick Actions")
+        if st.button("📈 Analyze Trends", use_container_width=True):
+            st.session_state.ai_input = "Analyze the top 3 coins for me."
+        if st.button("🛡️ Check My Risk", use_container_width=True):
+            st.session_state.ai_input = "Based on my data, is my risk too high?"
+        if st.button("🔮 7-Day Forecast", use_container_width=True):
+            st.session_state.ai_input = "Predict the price of BTC for next week."
+
+    with col_chat:
+        st.markdown("### 💬 Chat with AI")
+        
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # Display chat history
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Chat Input
+        prompt = st.chat_input("Ask me anything about your portfolio...")
+        
+        # Trigger from Quick Actions or Chat Input
+        input_text = prompt or st.session_state.get('ai_input')
+
+        if input_text:
+            # Clear the quick action buffer
+            if 'ai_input' in st.session_state:
+                st.session_state.ai_input = None
                 
-                st.markdown(response)
-                st.session_state.chat_history.append({"role": "assistant", "content": response})
+            with st.chat_message("user"):
+                st.markdown(input_text)
+            st.session_state.messages.append({"role": "user", "content": input_text})
 
-    st.markdown('</div>', unsafe_allow_html=True)
+            with st.chat_message("assistant"):
+                # Pass the dataframe 'df' so the AI knows your specific data
+                response = get_ai_response(input_text, df)
+                st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+
+    # --- BEGINNER'S DICTIONARY ---
+    st.markdown("---")
+    st.subheader("📚 Beginner's Crypto Dictionary")
+    cols = st.columns(3)
+    cols[0].help("**Bull Market:** When prices are going up like a rocket! 🚀")
+    cols[0].markdown("**Bull Market**")
+    
+    cols[1].help("**Bear Market:** When prices are hibernating and going down. 🐻")
+    cols[1].markdown("**Bear Market**")
+    
+    cols[2].help("**HODL:** Hold On for Dear Life. It means don't sell! 💎")
+    cols[2].markdown("**HODL**")
