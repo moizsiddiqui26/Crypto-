@@ -1,5 +1,33 @@
 from db.database import get_connection
+# Add this to your existing db/models.py
 
+def sell_holding(email, crypto, amount_to_sell, date):
+    """
+    Records a sell transaction by inserting a negative amount.
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    # We store sells as negative amounts to easily SUM them later
+    cur.execute(
+        "INSERT INTO holdings (email, crypto, amount, date) VALUES (?, ?, ?, ?)",
+        (email, crypto, -abs(amount_to_sell), date)
+    )
+    conn.commit()
+    conn.close()
+
+def get_coin_transactions(email, crypto):
+    """
+    Fetches every buy/sell for a specific coin for a specific user.
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT amount, date FROM holdings WHERE email=? AND crypto=?",
+        (email, crypto)
+    )
+    data = cur.fetchall()
+    conn.close()
+    return data
 # =========================
 # USER MODELS
 # =========================
