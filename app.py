@@ -3,6 +3,10 @@ import time
 import sys
 import os
 
+# --- CRITICAL FIX FOR IMPORTERROR ---
+# This ensures Streamlit can find the 'ui' and 'services' folders
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # ============================================================
 # PAGE CONFIG
 # ============================================================
@@ -13,14 +17,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS: HIDE ELEMENTS & DISABLE SELECTION ---
+# --- CSS: HIDE ELEMENTS, FULL PAGE, & DISABLE SELECTION ---
 st.markdown("""
     <style>
         /* Hide standard Streamlit header and footer */
         header, footer, #MainMenu {visibility: hidden;}
         .stAppDeployButton {display:none;}
 
-        /* DISABLE TEXT SELECTION & TOOLBAR */
+        /* DISABLE TEXT SELECTION POPUP */
         * {
             -webkit-user-select: none; 
             -moz-user-select: none; 
@@ -28,43 +32,38 @@ st.markdown("""
             user-select: none; 
         }
 
-        /* Re-enable selection for inputs only */
+        /* Allow selection in inputs only so users can type */
         input, textarea, [data-testid="stChatInput"] {
             user-select: text !important;
             -webkit-user-select: text !important;
         }
 
-        /* Professional Full-Page Padding Fix */
+        /* Full Page Container Fix */
         .block-container {
             padding-top: 0rem;
             padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
     </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# PATH FIX FOR IMPORTS
+# MODULE IMPORTS
 # ============================================================
-# Adding the current directory to sys.path to help resolve imports
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 try:
     from ui.components import render_header, render_ticker
     from ui import dashboard
+    from auth.auth_service import login_user, register_user
+    from services.live_prices import get_live_prices
+    from services.alert_engine import check_alerts
+    from db.database import init_db
 except ImportError as e:
-    st.error(f"❌ Module Import Error: {e}")
-    st.info("Check if your folder has __init__.py and matches the name exactly.")
+    st.error(f"❌ System Path Error: {e}")
+    st.info("Ensure you have empty __init__.py files in your 'ui' and 'services' folders.")
     st.stop()
 
-# Remaining imports...
-from auth.auth_service import login_user, register_user
-from services.live_prices import get_live_prices
-from services.alert_engine import check_alerts
-from db.database import init_db
-
-# ============================================================
-# INITIALIZE DATABASE
-# ============================================================
+# Initialize DB
 init_db()
 
 # ============================================================
