@@ -61,44 +61,42 @@ def login_ui():
                 if result["success"]:
                     st.session_state.auth = True
                     st.session_state.email = email
-                    # EMAIL ALERT: Login Notification
+                    # EMAIL ALERT: Notify user of login
                     send_welcome_email(
                         email, 
-                        "Security Alert: New Login", 
-                        f"A new login was detected for your CryptoPort account at {time.strftime('%Y-%m-%d %H:%M:%S')}."
+                        "🚀 Security Alert: New Login detected", 
+                        f"Your account was accessed on {time.strftime('%Y-%m-%d %H:%M:%S')}. If this wasn't you, please reset your password."
                     )
                     st.rerun()
                 else:
                     st.error(result["msg"])
             
-            if st.button("📝 Create New Account", use_container_width=True):
+            if st.button("📝 Go to Registration", use_container_width=True):
                 st.session_state.mode = "register"
                 st.rerun()
 
-        # --- REGISTER MODE (The Fix) ---
+        # --- REGISTER MODE ---
         else:
-            st.markdown('<h2 style="text-align:center;">📝 Register</h2>', unsafe_allow_html=True)
-            # Define these variables BEFORE using them in register_user
-            new_email = st.text_input("Choose Email", key="reg_email")
-            new_password = st.text_input("Choose Password", type="password", key="reg_pass")
+            st.markdown('<h2 style="text-align:center;">📝 Create Account</h2>', unsafe_allow_html=True)
+            # FIX: Define inputs BEFORE the button is clicked
+            new_email = st.text_input("Enter Email", key="reg_email")
+            new_password = st.text_input("Enter Password", type="password", key="reg_pass")
             confirm_password = st.text_input("Confirm Password", type="password", key="reg_conf")
             
-            if st.button("✅ Create Account", use_container_width=True):
+            if st.button("✅ Register Now", use_container_width=True):
                 if not new_email or not new_password:
                     st.warning("Please fill in all fields.")
                 elif new_password != confirm_password:
                     st.error("Passwords do not match!")
-                elif len(new_password) < 6:
-                    st.error("Password must be at least 6 characters.")
                 else:
                     result = register_user(new_email, new_password)
                     if result["success"]:
-                        st.success("Account created successfully!")
-                        # EMAIL ALERT: Registration Confirmation
+                        st.success("Account Created!")
+                        # EMAIL ALERT: Welcome Email
                         send_welcome_email(
                             new_email, 
-                            "Welcome to CryptoPort AI!", 
-                            "Your account has been created. Start tracking your portfolio today!"
+                            "🌟 Welcome to CryptoPort AI!", 
+                            "Your account is ready. Start tracking your assets and using our AI forecasting tools now."
                         )
                         st.session_state.mode = "login"
                         st.rerun()
