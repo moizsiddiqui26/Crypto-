@@ -1,5 +1,46 @@
 import streamlit as st
+import streamlit as st
 
+def render_professional_header(user_email):
+    # Custom CSS for the Header Background
+    st.markdown("""
+        <style>
+            .custom-header {
+                background: linear-gradient(90deg, #0f0c29, #302b63, #24243e);
+                padding: 20px;
+                border-radius: 0px 0px 15px 15px;
+                border-bottom: 2px solid #00ffcc;
+                margin-top: -60px;  /* Pulls it to the very top */
+                margin-bottom: 25px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+            }
+            .header-title {
+                color: white;
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: 1px;
+            }
+            .user-badge {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 5px 15px;
+                border-radius: 20px;
+                color: #00ffcc;
+                font-size: 14px;
+                border: 1px solid #00ffcc;
+            }
+        </style>
+        
+        <div class="custom-header">
+            <div class="header-title">🚀 CRYPTOPORT <span style="font-size:12px; vertical-align:middle; color:#94A3B8;">AI v2.0</span></div>
+            <div class="user-badge">👤 """ + str(user_email) + """</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+# Usage in your app:
+# render_professional_header(st.session_state.email)
 def render_header(user):
     nav_items = [
         "📊 Dashboard", "👤 Portfolio", "📈 Trading Signals", 
