@@ -99,6 +99,7 @@ def render_forecast(df):
 
     # Accuracy Summary Metrics
     avg_err = comparison_df["Difference (%)"].abs().mean()
-    m1, m2 = st.columns(2)
-    m1.write(f"**Average Model Deviation:** {avg_err:.2f}%")
-    m2.write("**Model Reliability:** ✅ High" if avg_err < 10 else "⚠️ Moderate")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Avg. Deviation", f"{avg_error:.2f}%", help="Lower is better. Shows average gap between AI and Truth.")
+    m2.metric("Trend Strength (R²)", f"{max(0, r2*100):.1f}%", help="Closer to 100% means the asset is following a perfect linear path.")
+    m3.metric("Directional Accuracy", f"{dir_acc}%", help="How often the AI correctly guessed 'Up' vs 'Down'.")
