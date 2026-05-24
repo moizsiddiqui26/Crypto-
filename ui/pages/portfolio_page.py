@@ -3,8 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from db.models import add_holding, sell_holding, get_holdings
-from email_service import send_portfolio_summary_email
-
+from email_service import send_email, send_transaction_notification
 def render_portfolio(df):
     st.markdown('<div class="section-title">💼 Professional Portfolio Manager</div>', unsafe_allow_html=True)
     email = st.session_state.get("email")
