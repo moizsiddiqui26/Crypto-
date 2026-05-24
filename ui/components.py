@@ -96,23 +96,22 @@ def render_header(user_email):
     """, unsafe_allow_html=True)
 
     # Header HTML
-    st.markdown(f"""
-        <div class="custom-header">
-            <div class="header-top">
-                <div class="header-title">
-                    🚀 CRYPTOPORT 
-                    <span style="font-size:10px; color:#94A3B8; font-weight:400; margin-left:5px;">
-                        AI ELITE
-                    </span>
-                </div>
+    header_html = f"""
+    <div class="custom-header">
+    <div class="header-top">
 
-                <div class="user-badge">
-                    <span class="status-dot"></span>
-                    <span>LIVE</span> | 👤 {user_email}
-                </div>
+        <div class="header-title">
+            CRYPTOPORT
             </div>
+
+        <div class="user-badge">
+            <span class="status-dot"></span>
+            <span>LIVE</span> | 👤 {user_email}
         </div>
-    """, unsafe_allow_html=True)
+
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     # Header Navigation Buttons
     nav1, nav2, nav3, nav4, nav5, nav6, nav7 = st.columns(7)
