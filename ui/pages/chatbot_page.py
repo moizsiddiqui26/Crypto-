@@ -1,80 +1,99 @@
 import streamlit as st
 import pandas as pd
-from services.ai_engine import get_ai_response
+from services.ai_assistant import ask_ai
+from db.models import get_holdings
 
-def render_ai_assistant(df):
+def render_chatbot_page(df):
     st.markdown("# 🤖 AI Investment Assistant")
 
-    # --- NEW USER GUIDE (Beginner Friendly) ---
+    # ============================================================
+    # NEW USER GUIDE (Beginner Friendly)
+    # ============================================================
     with st.expander("📖 New User Guide: How to use this AI"):
         st.markdown("""
         ### Welcome to your AI Copilot! 
-        You don't need to be a math genius or a pro trader. Think of this AI as a **financial translator**.
+        You don't need to be a professional trader to get value here. Think of this AI as your **financial mentor**.
         
-        **What can you ask?**
-        - **"Explain Bitcoin like I'm 5"** (Great for basics)
-        - **"Is it a good time to buy SOL?"** (AI analyzes the charts for you)
-        - **"What is my portfolio risk?"** (AI looks at your current balance)
+        **Things you can ask:**
+        - **"Explain Bitcoin like I'm 5"** — Great for understanding the basics.
+        - **"Is it a good time to buy Ethereum?"** — AI analyzes the current charts and trends for you.
+        - **"How can I lower my portfolio risk?"** — AI looks at your current holdings and suggests safer moves.
         """)
-        
-        st.info("💡 **Pro Tip:** The more specific you are, the better the answer. Instead of 'Buy BTC?', try 'Is BTC a good long-term hold given its current volatility?'")
+        st.info("💡 **Pro Tip:** Be specific. Instead of asking 'Is BTC good?', try 'Is BTC a good long-term hold given its current volatility?'")
 
     st.markdown("---")
 
-    # --- AI COMMAND CENTER ---
+    # ============================================================
+    # AI COMMAND CENTER
+    # ============================================================
     col_chat, col_tools = st.columns([3, 1])
+
+    # Portfolio Context for AI
+    email = st.session_state.get("email")
+    holdings = get_holdings(email)
+    portfolio_summary = ""
+    if holdings:
+        pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
+        portfolio_summary = pf.to_string()
 
     with col_tools:
         st.markdown("### ⚡ Quick Actions")
+        # Buttons that pre-fill the AI query
         if st.button("📈 Analyze Trends", use_container_width=True):
-            st.session_state.ai_input = "Analyze the top 3 coins for me."
+            st.session_state.temp_prompt = "Analyze the top 3 coins based on recent trends."
         if st.button("🛡️ Check My Risk", use_container_width=True):
-            st.session_state.ai_input = "Based on my data, is my risk too high?"
+            st.session_state.temp_prompt = "Based on my portfolio data, is my risk level too high?"
         if st.button("🔮 7-Day Forecast", use_container_width=True):
-            st.session_state.ai_input = "Predict the price of BTC for next week."
+            st.session_state.temp_prompt = "Give me a 7-day price forecast for the main coins."
 
     with col_chat:
         st.markdown("### 💬 Chat with AI")
         
-        # Initialize chat history
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = []
 
-        # Display chat history
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+        # Display history
+        for role, msg in st.session_state.chat_history:
+            with st.chat_message(role):
+                st.markdown(msg)
 
-        # Chat Input
-        prompt = st.chat_input("Ask me anything about your portfolio...")
+        # Chat Input logic handling both manual text and Quick Action buttons
+        user_input = st.chat_input("Ask your AI crypto advisor...")
         
-        # Trigger from Quick Actions or Chat Input
-        input_text = prompt or st.session_state.get('ai_input')
+        # If a Quick Action button was clicked, it overrides user_input
+        active_prompt = st.session_state.get('temp_prompt') or user_input
 
-        if input_text:
-            # Clear the quick action buffer
-            if 'ai_input' in st.session_state:
-                st.session_state.ai_input = None
-                
+        if active_prompt:
+            # Clear button state after use
+            if 'temp_prompt' in st.session_state:
+                st.session_state.temp_prompt = None
+
+            st.session_state.chat_history.append(("user", active_prompt))
             with st.chat_message("user"):
-                st.markdown(input_text)
-            st.session_state.messages.append({"role": "user", "content": input_text})
+                st.markdown(active_prompt)
 
             with st.chat_message("assistant"):
-                # Pass the dataframe 'df' so the AI knows your specific data
-                response = get_ai_response(input_text, df)
-                st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+                with st.spinner("Analyzing market data..."):
+                    response = ask_ai(active_prompt, portfolio_summary)
+                    st.markdown(response)
+            
+            st.session_state.chat_history.append(("assistant", response))
 
-    # --- BEGINNER'S DICTIONARY ---
+    # ============================================================
+    # BEGINNER'S DICTIONARY
+    # ============================================================
     st.markdown("---")
     st.subheader("📚 Beginner's Crypto Dictionary")
-    cols = st.columns(3)
-    cols[0].help("**Bull Market:** When prices are going up like a rocket! 🚀")
-    cols[0].markdown("**Bull Market**")
+    d1, d2, d3 = st.columns(3)
     
-    cols[1].help("**Bear Market:** When prices are hibernating and going down. 🐻")
-    cols[1].markdown("**Bear Market**")
+    with d1:
+        st.markdown("**🚀 Bull Market**")
+        st.caption("When prices are going up consistently. Everyone is optimistic!")
     
-    cols[2].help("**HODL:** Hold On for Dear Life. It means don't sell! 💎")
-    cols[2].markdown("**HODL**")
+    with d2:
+        st.markdown("**🐻 Bear Market**")
+        st.caption("When prices are falling and the market is 'hibernating'.")
+    
+    with d3:
+        st.markdown("**💎 HODL**")
+        st.caption("A term for holding your assets long-term, no matter what happens.")
