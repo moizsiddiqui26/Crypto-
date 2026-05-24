@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 from services.forecast_engine import get_forecast_summary
 
 def render_forecast(df):
@@ -19,7 +20,6 @@ def render_forecast(df):
     # Process data for the specific coin
     coin_df = df[df["Crypto"] == coin].copy()
     coin_df['Date'] = pd.to_datetime(coin_df['Date']).dt.normalize()
-    # Grouping ensures unique daily prices for the backtesting table
     coin_df = coin_df.groupby('Date')['Close'].mean().reset_index().sort_values("Date")
     
     if len(coin_df) < 14:
@@ -61,20 +61,16 @@ def render_forecast(df):
     st.markdown("---")
     st.markdown("### 🏆 AI Performance Review (Last 7 Working Days)")
     
-    # Slice data for backtesting
     train_data = coin_df.iloc[:-7].reset_index(drop=True)
     actual_last_7 = coin_df.iloc[-7:].reset_index(drop=True)
     
-    # Train model on past data
     X_train = np.arange(len(train_data)).reshape(-1, 1)
     y_train = train_data["Close"]
     model = LinearRegression().fit(X_train, y_train)
     
-    # Predict the 7 days that already happened
     X_test = np.arange(len(train_data), len(train_data) + 7).reshape(-1, 1)
     predicted_last_7 = model.predict(X_test)
 
-    # Create Comparison DataFrame
     comparison_df = pd.DataFrame({
         "Date": actual_last_7["Date"].dt.strftime('%Y-%m-%d'),
         "Actual Price": actual_last_7["Close"].values,
@@ -95,10 +91,14 @@ def render_forecast(df):
 
     st.table(styled_table)
 
-    # --- 5. UPDATED ACCURACY METRICS (Removed Trend Strength) ---
+    # --- 5. FIXED ACCURACY METRICS ---
+    # 1. Calculate Average Deviation
     avg_err_val = comparison_df["Difference (%)"].abs().mean()
     
-    # Calculate Directional Accuracy
+    # 2. Calculate R2 Score (Trend Strength)
+    r2_val = r2_score(actual_last_7["Close"], predicted_last_7)
+    
+    # 3. Calculate Directional Accuracy
     correct_dir = 0
     for i in range(1, len(comparison_df)):
         act_up = actual_last_7["Close"].iloc[i] > actual_last_7["Close"].iloc[i-1]
@@ -106,10 +106,13 @@ def render_forecast(df):
         if act_up == pred_up: correct_dir += 1
     dir_acc_val = int((correct_dir / 6) * 100)
 
-    # Display remaining 2 metrics in 2 columns
-    m1, m2 = st.columns(2)
+    # Display Metrics
+    m1, m2, m3 = st.columns(3)
     m1.metric("Avg. Deviation", f"{avg_err_val:.2f}%", 
               help="Lower is better. Shows average gap between AI and Truth.")
     
-    m2.metric("Directional Accuracy", f"{dir_acc_val}%", 
+    m2.metric("Trend Strength (R²)", f"{max(0, r2_val*100):.1f}%", 
+              help="Closer to 100% means the asset is following a perfect linear path.")
+    
+    m3.metric("Directional Accuracy", f"{dir_acc_val}%", 
               help="How often the AI correctly guessed 'Up' vs 'Down'.")
