@@ -11,6 +11,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- NEW: HIDE STREAMLIT HEADER & FOOTER ---
+# This removes the top bar and "Deploy" button for a professional look
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .stAppDeployButton {display:none;}
+    </style>
+""", unsafe_allow_html=True)
+
 # ============================================================
 # IMPORTS
 # ============================================================
@@ -117,7 +128,7 @@ def login_ui():
                     result = register_user(new_name, new_email, new_password)
                     if result["success"]:
                         st.success("✅ Account created successfully!")
-                        # Send welcome email notification
+                        # Trigger Welcome Email
                         try:
                             send_welcome_email(new_email)
                         except Exception as e:
@@ -158,7 +169,7 @@ def main_app():
             print(f"Alert Error: {e}")
         render_ticker(prices)
 
-    # Route to dashboard
+    # Route to dashboard logic
     dashboard.main()
 
 # ============================================================
