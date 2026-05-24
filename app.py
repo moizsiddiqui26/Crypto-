@@ -12,12 +12,12 @@ st.set_page_config(
 # ============================================================
 # IMPORTS
 # ============================================================
-from auth.auth_service import login_user, register_user
+from auth_service import login_user, register_user
 from ui.components import render_header, render_ticker
 from ui import dashboard
 from services.live_prices import get_live_prices
 from services.alert_engine import check_alerts
-from services.email_service import send_welcome_email  # Used for alerts
+from services.email_service import send_welcome_email
 from db.database import init_db
 
 # Initialize database
@@ -50,7 +50,7 @@ def login_ui():
 
     col1, col2, col3 = st.columns([2, 4, 2])
     with col2:
-        # LOGIN MODE
+        # --- LOGIN MODE ---
         if st.session_state.mode == "login":
             st.markdown('<h2 style="text-align:center;">🔐 Login</h2>', unsafe_allow_html=True)
             email = st.text_input("Email", key="login_email")
@@ -61,9 +61,12 @@ def login_ui():
                 if result["success"]:
                     st.session_state.auth = True
                     st.session_state.email = email
-                    # Add Login Alert Email
-                    send_welcome_email(email, "Security Alert: New Login Detected", 
-                                     f"Hello, your CryptoPort account was just accessed at {time.strftime('%Y-%m-%d %H:%M:%S')}.")
+                    # SEND LOGIN ALERT EMAIL
+                    send_welcome_email(
+                        email, 
+                        "Security Alert: New Login", 
+                        f"Hello, a new login was detected for your account at {time.strftime('%Y-%m-%d %H:%M:%S')}."
+                    )
                     st.rerun()
                 else:
                     st.error(result["msg"])
@@ -72,7 +75,7 @@ def login_ui():
                 st.session_state.mode = "register"
                 st.rerun()
 
-        # REGISTER MODE (Fixed Logic)
+        # --- REGISTER MODE (Fixed Logic) ---
         else:
             st.markdown('<h2 style="text-align:center;">📝 Register</h2>', unsafe_allow_html=True)
             new_email = st.text_input("Choose Email", key="reg_email")
@@ -88,9 +91,12 @@ def login_ui():
                     result = register_user(new_email, new_password)
                     if result["success"]:
                         st.success("Account created successfully!")
-                        # Add Registration Welcome/Alert Email
-                        send_welcome_email(new_email, "Welcome to CryptoPort AI!", 
-                                         "Your account has been created successfully. Welcome to the future of crypto investing!")
+                        # SEND REGISTRATION WELCOME EMAIL
+                        send_welcome_email(
+                            new_email, 
+                            "Welcome to CryptoPort AI!", 
+                            "Your account has been successfully created. You can now track your portfolio and use our AI tools."
+                        )
                         st.session_state.mode = "login"
                         st.rerun()
                     else:
