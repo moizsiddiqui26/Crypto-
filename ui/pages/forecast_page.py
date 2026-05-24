@@ -95,8 +95,6 @@ def render_forecast(df):
     # 1. Calculate Average Deviation
     avg_err_val = comparison_df["Difference (%)"].abs().mean()
     
-    # 2. Calculate R2 Score (Trend Strength)
-    r2_val = r2_score(actual_last_7["Close"], predicted_last_7)
     
     # 3. Calculate Directional Accuracy
     correct_dir = 0
@@ -107,12 +105,10 @@ def render_forecast(df):
     dir_acc_val = int((correct_dir / 6) * 100)
 
     # Display Metrics
-    m1, m2, m3 = st.columns(3)
+    m1,  m3 = st.columns(3)
     m1.metric("Avg. Deviation", f"{avg_err_val:.2f}%", 
               help="Lower is better. Shows average gap between AI and Truth.")
     
-    m2.metric("Trend Strength (R²)", f"{max(0, r2_val*100):.1f}%", 
-              help="Closer to 100% means the asset is following a perfect linear path.")
     
     m3.metric("Directional Accuracy", f"{dir_acc_val}%", 
               help="How often the AI correctly guessed 'Up' vs 'Down'.")
