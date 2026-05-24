@@ -35,4 +35,4 @@ def main():
     elif page == "📉 Advanced Charts":
         render_advanced_charts(df)    
     elif page == "🤖 AI Assistant":
-        render_chatbot_page(df)
+        render_ai_assistant(df)
