@@ -1,91 +1,127 @@
 import streamlit as st
 
-def render_header(user_email):
-    """
-    Renders the professional Elite header and Sidebar Navigation.
-    """
-    # 1. CSS for Complete Page Styling & Header
+def render_header(user):
+    nav_items = [
+        "📊 Dashboard", "👤 Portfolio", "📈 Trading Signals", 
+        "🔮 Forecast", "⚠ Risk", "📉 Advanced Charts", "🤖 AI Assistant"
+    ]
+
+    if "page" not in st.session_state:
+        st.session_state.page = "📊 Dashboard"
+
+    # ========================================================
+    # COINMARKETCAP MIDNIGHT THEME CSS
+    # ========================================================
     st.markdown("""
-        <style>
-            /* Remove standard Streamlit padding for a 'Full Page' feel */
-            .block-container {
-                padding-top: 0rem;
-                padding-bottom: 0rem;
-                padding-left: 2rem;
-                padding-right: 2rem;
-            }
-            
-            /* Professional Gradient Header */
-            .custom-header {
-                background: linear-gradient(90deg, #0f0c29, #302b63, #24243e);
-                padding: 15px 30px;
-                border-radius: 0px 0px 15px 15px;
-                border-bottom: 2px solid #00ffcc;
-                margin-top: -10px; 
-                margin-bottom: 30px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
-            }
-            
-            .header-title {
-                color: white; font-size: 26px; font-weight: 800; letter-spacing: 1.5px;
-            }
-            
-            .user-badge {
-                background: rgba(255, 255, 255, 0.1);
-                padding: 8px 16px;
-                border-radius: 30px;
-                color: #00ffcc;
-                font-size: 13px;
-                border: 1px solid rgba(0, 255, 204, 0.5);
-                display: flex; align-items: center; gap: 10px;
-            }
+    <style>
+    /* 1. Hide default Streamlit overhead */
+    [data-testid="stHeader"], #MainMenu, footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
 
-            .status-dot {
-                height: 10px; width: 10px; background-color: #00ffcc;
-                border-radius: 50%; box-shadow: 0 0 10px #00ffcc;
-                animation: pulse 1.5s infinite;
-            }
+    /* 2. Anchor content to the absolute top of the screen */
+    .block-container {
+        padding-top: 0rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        max-width: 100% !important;
+        background-color: #0B0E11; /* CMC Background */
+    }
 
-            @keyframes pulse {
-                0% { opacity: 0.4; }
-                70% { opacity: 1; }
-                100% { opacity: 0.4; }
-            }
-        </style>
-        
-        <div class="custom-header">
-            <div class="header-title">🚀 CRYPTOPORT <span style="font-size:12px; color:#94A3B8;">ELITE AI</span></div>
-            <div class="user-badge">
-                <span class="status-dot"></span>
-                <span>SYSTEM ACTIVE</span> | 👤 """ + str(user_email) + """
-            </div>
-        </div>
+    /* 3. Sticky Midnight Navbar */
+    .nav-wrapper {
+        background-color: #171924;
+        padding: 10px 60px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #222531;
+        position: sticky;
+        top: 0;
+        z-index: 9999;
+    }
+
+    /* 4. Sidebar Styles */
+    section[data-testid="stSidebar"] {
+        background-color: #0B0E11 !important;
+        border-right: 1px solid #222531 !important;
+    }
+    
+    section[data-testid="stSidebar"] * {
+        color: #CFD6E4 !important;
+    }
+
+    /* 5. CMC Link-style Navigation Buttons */
+    div.stButton > button {
+        background-color: transparent !important;
+        color: #A1A7BB !important;
+        border: none !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        padding: 10px 15px !important;
+        transition: color 0.2s ease !important;
+    }
+
+    div.stButton > button:hover {
+        color: #3861FB !important; /* CMC Primary Blue */
+        background-color: transparent !important;
+    }
+
+    /* 6. Professional Blue Badge */
+    .status-badge {
+        background-color: rgba(56, 97, 251, 0.1);
+        color: #3861FB;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 11px;
+        border: 1px solid rgba(56, 97, 251, 0.2);
+    }
+    </style>
     """, unsafe_allow_html=True)
 
-    # 2. Sidebar Navigation with all features
-    with st.sidebar:
-        st.markdown("<h1 style='text-align: center; color: #00ffcc;'>MENU</h1>", unsafe_allow_html=True)
-        
-        # Define all features
-        menu_options = {
-            "📊 Dashboard": "dashboard",
-            "📈 Trading Signals": "signals",
-            "📉 Advanced Charts": "charts",
-            "🔮 Forecast": "forecast",
-            "⚠ Risk": "risk",
-            "👤 Portfolio": "portfolio",
-            "🤖 AI Assistant": "ai"
-        }
+    # ========================================================
+    # NAVBAR LAYOUT
+    # ========================================================
+    st.markdown('<div class="nav-wrapper">', unsafe_allow_html=True)
+    
+    col_logo, col_nav, col_cta = st.columns([1.5, 7, 1.5])
 
-        for label, key in menu_options.items():
-            if st.button(label, use_container_width=True, key=f"nav_{key}"):
-                st.session_state.page = label
+    with col_logo:
+        st.markdown('<div style="font-size:22px; font-weight:800; color:white; margin-top:5px;">CryptoPort</div>', unsafe_allow_html=True)
+
+    with col_nav:
+        nav_cols = st.columns(len(nav_items))
+        for i, item in enumerate(nav_items):
+            if nav_cols[i].button(item, key=f"nav_{i}"):
+                st.session_state.page = item
                 st.rerun()
-        
-        st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True):
+
+    with col_cta:
+        st.markdown('<div style="display:flex; justify-content:flex-end; margin-top:5px;"><span class="status-badge">🟢 AI ACTIVE</span></div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Sidebar Logout and Info
+    with st.sidebar:
+        st.markdown(f"#### Logged in as: **{user}**")
+        if st.button("🚪 Logout Account", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
+
+def render_ticker(prices):
+    # Secondary ticker row below the main header
+    st.markdown("""
+        <div style="background-color: #171924; border-bottom: 1px solid #222531; padding: 8px 60px;">
+            <span style="color: #58667E; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                Market Data Live Update
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    if prices:
+        cols = st.columns(len(prices))
+        for i, (symbol, price) in enumerate(prices.items()):
+            with cols[i]:
+                st.metric(label=symbol, value=f"${price:,.2f}")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
