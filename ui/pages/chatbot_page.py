@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from services.ai_engine import get_ai_response
 
-def render_ai_assistant(df):
+def render_chatbot_page(df):
     st.markdown("# 🤖 AI Investment Assistant")
 
     # --- NEW USER GUIDE (Beginner Friendly) ---
