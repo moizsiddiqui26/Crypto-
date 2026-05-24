@@ -52,31 +52,83 @@ if "name" not in st.session_state:
     st.session_state.name = ""
 
 # ============================================================
+# CUSTOM STYLING
+# ============================================================
+st.markdown("""
+<style>
+
+.stApp {
+    background: linear-gradient(to right, #000428, #004e92);
+    color: white;
+}
+
+div[data-testid="stForm"] {
+    background-color: rgba(255,255,255,0.05);
+    padding: 30px;
+    border-radius: 15px;
+}
+
+.stTextInput input {
+    background-color: #1e1e2f;
+    color: white;
+    border-radius: 10px;
+    border: 1px solid #555;
+}
+
+.stButton>button {
+    width: 100%;
+    border-radius: 10px;
+    height: 45px;
+    font-size: 18px;
+    font-weight: bold;
+    background: linear-gradient(to right, #00c6ff, #0072ff);
+    color: white;
+    border: none;
+}
+
+.stButton>button:hover {
+    background: linear-gradient(to right, #0072ff, #00c6ff);
+    color: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ============================================================
 # LOGIN / REGISTER UI
 # ============================================================
 def login_ui():
 
-    st.markdown("""
+    # ========================================================
+    # HEADER
+    # ========================================================
+    st.markdown(
+        """
         <div style="text-align:center; padding-top:40px; padding-bottom:20px;">
-            <div style="
-                font-size:52px;
+            
+            <h1 style="
+                font-size:60px;
                 font-weight:900;
                 color:white;
+                margin-bottom:10px;
             ">
                 🚀 CRYPTOPORT
-            </div>
+            </h1>
 
-            <div style="
-                color:#94A3B8;
-                font-size:16px;
-                margin-top:5px;
+            <p style="
+                color:#CBD5E1;
+                font-size:18px;
+                margin-top:0px;
             ">
                 AI-Powered Crypto Intelligence
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+            </p>
 
-    col1, col2, col3 = st.columns([2, 4, 2])
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    col1, col2, col3 = st.columns([1,2,1])
 
     with col2:
 
@@ -86,7 +138,11 @@ def login_ui():
         if st.session_state.mode == "login":
 
             st.markdown(
-                '<h2 style="text-align:center;">🔐 Login</h2>',
+                """
+                <h2 style='text-align:center; color:white;'>
+                    🔐 Login
+                </h2>
+                """,
                 unsafe_allow_html=True
             )
 
@@ -101,38 +157,37 @@ def login_ui():
                 key="login_pass"
             )
 
-            if st.button(
-                "🚀 Login",
-                use_container_width=True
-            ):
+            if st.button("🚀 Login"):
 
                 if not email or not password:
                     st.warning("Please fill all fields.")
 
                 else:
-                    result = login_user(email, password)
 
-                    if result["success"]:
+                    try:
+                        result = login_user(email, password)
 
-                        st.session_state.auth = True
-                        st.session_state.email = email
+                        if result["success"]:
 
-                        if "user" in result:
-                            st.session_state.name = result["user"]["name"]
+                            st.session_state.auth = True
+                            st.session_state.email = email
 
-                        st.success("Login Successful!")
+                            if "user" in result:
+                                st.session_state.name = result["user"]["name"]
 
-                        time.sleep(1)
+                            st.success("✅ Login Successful")
 
-                        st.rerun()
+                            time.sleep(1)
 
-                    else:
-                        st.error(result["msg"])
+                            st.rerun()
 
-            if st.button(
-                "📝 Create Account",
-                use_container_width=True
-            ):
+                        else:
+                            st.error(result["msg"])
+
+                    except Exception as e:
+                        st.error(f"Login Error: {e}")
+
+            if st.button("📝 Create Account"):
                 st.session_state.mode = "register"
                 st.rerun()
 
@@ -142,7 +197,11 @@ def login_ui():
         else:
 
             st.markdown(
-                '<h2 style="text-align:center;">📝 Register</h2>',
+                """
+                <h2 style='text-align:center; color:white;'>
+                    📝 Create Account
+                </h2>
+                """,
                 unsafe_allow_html=True
             )
 
@@ -152,12 +211,12 @@ def login_ui():
             )
 
             new_email = st.text_input(
-                "Choose Email",
+                "Email",
                 key="reg_email"
             )
 
             new_password = st.text_input(
-                "Choose Password",
+                "Password",
                 type="password",
                 key="reg_pass"
             )
@@ -168,70 +227,72 @@ def login_ui():
                 key="reg_conf"
             )
 
-            if st.button(
-                "✅ Create Account",
-                use_container_width=True
-            ):
+            if st.button("✅ Register"):
 
-                # =========================
-                # VALIDATIONS
-                # =========================
+                # =================================================
+                # VALIDATION
+                # =================================================
                 if not new_name or not new_email or not new_password:
-                    st.warning("Please fill in all fields.")
+                    st.warning("Please fill all fields.")
 
                 elif new_password != confirm_password:
-                    st.error("Passwords do not match!")
+                    st.error("Passwords do not match.")
 
                 elif len(new_password) < 6:
                     st.error("Password must be at least 6 characters.")
 
                 else:
 
-                    # =========================
-                    # REGISTER USER
-                    # =========================
-                    result = register_user(
-                        new_name,
-                        new_email,
-                        new_password
-                    )
+                    try:
 
-                    if result["success"]:
+                        result = register_user(
+                            new_name,
+                            new_email,
+                            new_password
+                        )
 
-                        st.success("✅ Account created successfully!")
+                        if result["success"]:
 
-                        # Send welcome email
-                        try:
-                            send_welcome_email(new_email)
-                        except Exception as e:
-                            print("Email Error:", e)
+                            st.success("✅ Account Created Successfully")
 
-                        time.sleep(1)
+                            # Send welcome email
+                            try:
+                                send_welcome_email(new_email)
+                            except Exception as e:
+                                print("Email Error:", e)
 
-                        st.session_state.mode = "login"
+                            time.sleep(1)
 
-                        st.rerun()
+                            st.session_state.mode = "login"
 
-                    else:
-                        st.error(result["msg"])
+                            st.rerun()
 
-            if st.button(
-                "⬅ Back to Login",
-                use_container_width=True
-            ):
+                        else:
+                            st.error(result["msg"])
+
+                    except Exception as e:
+                        st.error(f"Registration Error: {e}")
+
+            if st.button("⬅ Back to Login"):
                 st.session_state.mode = "login"
                 st.rerun()
 
 # ============================================================
-# MAIN APP
+# MAIN APPLICATION
 # ============================================================
 def main_app():
 
-    render_header(st.session_state.email)
+    try:
+        render_header(st.session_state.email)
+
+    except Exception as e:
+        st.error(f"Header Error: {e}")
 
     current_time = time.time()
 
-    # Auto refresh prices every 5 seconds
+    # ========================================================
+    # AUTO PRICE REFRESH
+    # ========================================================
     if current_time - st.session_state.last_update > 5:
 
         try:
@@ -251,14 +312,21 @@ def main_app():
         try:
             check_alerts(prices)
         except Exception as e:
-            print("Alert Error:", e)
+            print("Alert Engine Error:", e)
 
-        render_ticker(prices)
+        try:
+            render_ticker(prices)
+        except Exception as e:
+            print("Ticker Error:", e)
 
     # ========================================================
     # DASHBOARD
     # ========================================================
-    dashboard.main()
+    try:
+        dashboard.main()
+
+    except Exception as e:
+        st.error(f"Dashboard Error: {e}")
 
 # ============================================================
 # APP ENTRY
