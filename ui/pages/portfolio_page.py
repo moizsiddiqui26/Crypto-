@@ -3,102 +3,103 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from db.models import add_holding, sell_holding, get_holdings
-from email_service import send_email, send_transaction_notification
+# FIXED: Importing the correct function names from email_service
+from email_service import send_transaction_notification
+
 def render_portfolio(df):
     st.markdown('<div class="section-title">💼 Professional Portfolio Manager</div>', unsafe_allow_html=True)
     email = st.session_state.get("email")
 
-    # =========================
-    # 🛒 TRANSACTION INTERFACE (BUY/SELL)
-    # =========================
-    with st.expander("➕ / ➖ Add New Transaction", expanded=False):
-        t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-        action = t_col1.radio("Action", ["Buy", "Sell"])
-        coin = t_col2.selectbox("Crypto", df["Crypto"].unique())
-        cash_amount = t_col3.number_input("Amount ($)", min_value=0.0)
-        date = t_col4.date_input("Transaction Date")
+    # --- 1. TRANSACTION INTERFACE ---
+    with st.expander("➕ / ➖ New Transaction (Buy/Sell)", expanded=True):
+        col1, col2, col3, col4 = st.columns(4)
+        action = col1.radio("Action", ["Buy", "Sell"])
+        coin = col2.selectbox("Crypto", sorted(df["Crypto"].unique()))
+        amount_usd = col3.number_input("Cash Amount ($)", min_value=0.0, step=10.0)
+        date = col4.date_input("Date")
 
-        if st.button("Confirm Transaction", use_container_width=True):
-            if action == "Buy":
-                add_holding(email, coin, cash_amount, str(date))
-                st.success(f"Successfully bought ${cash_amount} of {coin}")
-                send_portfolio_summary_email(email, pd.DataFrame()) # Trigger Update Email
-                st.rerun()
+        if st.button("Execute Transaction", use_container_width=True):
+            # Check current balance for sells
+            current_data = get_holdings(email)
+            temp_df = pd.DataFrame(current_data, columns=["Crypto", "Amount", "Date"])
+            balance = temp_df[temp_df["Crypto"] == coin]["Amount"].sum() if not temp_df.empty else 0
+
+            if action == "Sell" and amount_usd > balance:
+                st.error(f"❌ Insufficient Funds! You only have ${balance:.2f} of {coin}.")
+            elif amount_usd <= 0:
+                st.error("Please enter an amount greater than 0.")
             else:
-                # Validation: Check if user has enough to sell (Logic below in Display section)
-                # For immediate validation, we fetch current data
-                current_data = get_holdings(email)
-                holdings_df = pd.DataFrame(current_data, columns=["Crypto", "Amount", "Date"])
-                available_cash = holdings_df[holdings_df["Crypto"] == coin]["Amount"].sum()
-                
-                if cash_amount > available_cash:
-                    st.error(f"Insufficient balance! You only have ${available_cash:.2f} worth of {coin} available.")
+                if action == "Buy":
+                    add_holding(email, coin, amount_usd, str(date))
                 else:
-                    sell_holding(email, coin, cash_amount, str(date))
-                    st.warning(f"Successfully sold ${cash_amount} of {coin}")
-                    send_portfolio_summary_email(email, pd.DataFrame()) # Trigger Update Email
-                    st.rerun()
+                    sell_holding(email, coin, amount_usd, str(date))
+                
+                # Send Email Notification
+                send_transaction_notification(email, coin, action, amount_usd)
+                st.success(f"✅ {action} Successful! Email receipt sent.")
+                st.rerun()
 
-    # =========================
-    # 📊 CALCULATE PROFESSIONAL METRICS
-    # =========================
-    raw_data = get_holdings(email)
-    if not raw_data:
-        st.info("Your portfolio is empty. Start by adding an investment!")
+    # --- 2. CALCULATE PROFESSIONAL METRICS ---
+    data = get_holdings(email)
+    if not data:
+        st.info("Your portfolio is currently empty.")
         return
 
-    # Group data by Coin to get Weighted Average and Net Quantity
-    summary_list = []
-    unique_coins = set([row[0] for row in raw_data])
+    # Process transactions to find Average Price and Quantity
+    raw_df = pd.DataFrame(data, columns=["Crypto", "Amount", "Date"])
+    summary_data = []
 
-    for c in unique_coins:
-        coin_transactions = [r for r in raw_data if r[0] == c]
-        net_invested = sum([r[1] for r in coin_transactions]) # Total cash currently in the coin
+    for c in raw_df["Crypto"].unique():
+        coin_tx = raw_df[raw_df["Crypto"] == c]
+        total_invested = coin_tx["Amount"].sum()
         
-        # Calculate Weighted Average Price
+        # Calculate quantity and cost basis
         total_qty = 0
-        total_cost = 0
-        for amt, dt in coin_transactions:
-            # Get historical price at that date
-            hist_price = df[(df["Crypto"] == c) & (df["Date"] <= dt)].iloc[-1]["Close"]
-            qty = amt / hist_price
-            total_qty += qty
-            if amt > 0: # Only Buys affect the average "cost" price
-                total_cost += amt
+        total_cost_basis = 0
         
-        avg_price = total_cost / total_qty if total_qty > 0 else 0
-        curr_price = df[df["Crypto"] == c].iloc[-1]["Close"]
-        curr_value = total_qty * curr_price
-        profit = curr_value - net_invested
+        for _, row in coin_tx.iterrows():
+            # Get historical price at that date
+            hist = df[(df["Crypto"] == c) & (df[ "Date"] <= row["Date"])]
+            price_at_time = hist.iloc[-1]["Close"] if not hist.empty else df[df["Crypto"]==c]["Close"].iloc[0]
+            
+            qty = row["Amount"] / price_at_time
+            total_qty += qty
+            if row["Amount"] > 0: # Only Buys affect Average Price
+                total_cost_basis += row["Amount"]
 
-        if total_qty > 0.0001: # Hide coins with zero balance
-            summary_list.append({
+        avg_buy_price = total_cost_basis / total_qty if total_qty > 0 else 0
+        current_price = df[df["Crypto"] == c]["Close"].iloc[-1]
+        current_value = total_qty * current_price
+        
+        if total_qty > 0.0001: # Filter out sold-off positions
+            summary_data.append({
                 "Crypto": c,
-                "Net Quantity": round(total_qty, 4),
-                "Avg. Buy Price": round(avg_price, 2),
-                "Current Price": round(curr_price, 2),
-                "Total Invested": round(net_invested, 2),
-                "Current Value": round(curr_value, 2),
-                "Profit ($)": round(profit, 2),
-                "Profit (%)": round((profit/net_invested)*100, 2) if net_invested != 0 else 0
+                "Holdings": round(total_qty, 4),
+                "Avg. Buy Price": f"${avg_buy_price:,.2f}",
+                "Current Price": f"${current_price:,.2f}",
+                "Value": current_value,
+                "Profit": current_value - total_invested
             })
 
-    portfolio_df = pd.DataFrame(summary_list)
+    if not summary_data:
+        st.info("You currently have no active holdings.")
+        return
 
-    # =========================
-    # 💎 PROFESSIONAL DISPLAY
-    # =========================
+    portfolio_df = pd.DataFrame(summary_data)
+
+    # --- 3. DISPLAY ---
     st.dataframe(portfolio_df, use_container_width=True, hide_index=True)
 
-    # Totals
-    total_val = portfolio_df["Current Value"].sum()
-    total_inv = portfolio_df["Total Invested"].sum()
-    
+    # Metrics Row
     m1, m2, m3 = st.columns(3)
-    m1.metric("Total Portfolio Value", f"${total_val:,.2f}")
-    m2.metric("Net Invested", f"${total_inv:,.2f}")
-    m3.metric("Net Profit", f"${total_val - total_inv:,.2f}", delta=f"{((total_val-total_inv)/total_inv)*100:.2f}%" if total_inv > 0 else "0%")
+    total_val = portfolio_df["Value"].sum()
+    total_prof = portfolio_df["Profit"].sum()
+    
+    m1.metric("Total Value", f"${total_val:,.2f}")
+    m2.metric("Net Profit/Loss", f"${total_prof:,.2f}", delta=f"{total_prof:,.2f}")
+    m3.metric("Assets Held", len(portfolio_df))
 
-    # Pie Chart for Allocation
-    fig = px.pie(portfolio_df, values='Current Value', names='Crypto', title='Asset Allocation', hole=.4, template="plotly_dark")
+    # Allocation Chart
+    fig = px.pie(portfolio_df, values='Value', names='Crypto', 
+                 title="Portfolio Allocation", hole=0.4, template="plotly_dark")
     st.plotly_chart(fig, use_container_width=True)
