@@ -38,7 +38,7 @@ if "page" not in st.session_state:
     st.session_state.page = "📊 Dashboard"
 
 # ============================================================
-# LOGIN & REGISTRATION UI
+# LOGIN UI
 # ============================================================
 def login_ui():
     st.markdown("""
@@ -62,20 +62,20 @@ def login_ui():
                     st.session_state.auth = True
                     st.session_state.email = email
                     # ALERT: Send email notification on login
-                    send_welcome_email(email) 
+                    send_welcome_email(email)
                     st.rerun()
                 else:
                     st.error(result["msg"])
             
-            if st.button("📝 Create New Account", use_container_width=True):
+            if st.button("📝 Create Account", use_container_width=True):
                 st.session_state.mode = "register"
                 st.rerun()
 
-        # --- REGISTER MODE (Fixed) ---
+        # --- REGISTER MODE (Fixed Logic) ---
         else:
             st.markdown('<h2 style="text-align:center;">📝 Register</h2>', unsafe_allow_html=True)
             
-            # Fields must be defined BEFORE the button logic
+            # FIX: Variables must be defined BEFORE the button is clicked
             new_email = st.text_input("Choose Email", key="reg_email")
             new_password = st.text_input("Choose Password", type="password", key="reg_pass")
             confirm_password = st.text_input("Confirm Password", type="password", key="reg_conf")
@@ -106,6 +106,7 @@ def login_ui():
 # MAIN APP
 # ============================================================
 def main_app():
+    # Renders the professional header
     render_header(st.session_state.email)
 
     current_time = time.time()
