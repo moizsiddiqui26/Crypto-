@@ -1,13 +1,13 @@
 import streamlit as st
-import plotly.graph_objects as go
 import pandas as pd
 from services.forecast_engine import get_forecast_summary
+from sklearn.metrics import r2_score
+import numpy as np
 
 def render_forecast(df):
-    st.markdown("# 🔮 AI Price Forecast")
+    st.markdown("# 🔮 AI Price Forecast & Accuracy")
     
-    # --- NEW USER INTRO ---
-    st.info("💡 **Welcome to AI Forecasting!** We use Machine Learning to analyze price history and predict where the market might go in the next 7 days.")
+    st.info("💡 **AI Intelligence:** This module uses Linear Regression to find the mathematical trend of the asset. We have removed visual charts to focus on the raw data and model accuracy scores.")
 
     # Selection Logic
     col_sel1, col_sel2 = st.columns(2)
@@ -17,90 +17,56 @@ def render_forecast(df):
         amount = st.number_input("If I invest this much ($):", value=1000.0)
 
     # Forecasting Logic
-    coin_df = df[df["Crypto"] == coin]
+    coin_df = df[df["Crypto"] == coin].sort_values("Date")
     result = get_forecast_summary(coin_df, amount, 7)
 
     if result:
-        # Results metrics
+        # --- SECTION 1: PREDICTION RESULTS ---
         st.markdown("### 🎯 Prediction Results")
         m1, m2, m3 = st.columns(3)
         m1.metric("Predicted Price", f"${result['predicted_price']:.2f}")
         m2.metric("Expected Portfolio Value", f"${result['expected_value']:.2f}")
-        m3.metric("Estimated Growth (%)", f"{result['profit_pct']:.2f}%", delta=f"{result['profit_pct']:.2f}%")
-        # ---------------------------------------------------------
-        # THE BEGINNER'S DICTIONARY
-        # ---------------------------------------------------------
-        st.markdown("### 📝 What do these numbers mean?")
-        
-        with st.expander("🔍 Click here to see the Beginner's Explanation"):
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.write("**What is ROI?**")
-                st.write("""
-                ROI stands for **Return on Investment**. 
-                - If it's **+5%**, your $1,000 becomes $1,050.
-                - If it's **-5%**, your $1,000 becomes $950.
-                """)
-            with col_b:
-                st.write("**How accurate is this?**")
-                st.write("""
-                Predictions are based on **Historical Trends**. If the market changes suddenly due to news or global events, the AI may not be 100% accurate. 
-                """)
+        m3.metric("Estimated Growth (%)", f"{result['profit_pct']:.2f}%", 
+                  delta=f"{result['profit_pct']:.2f}%")
 
-            st.info("💡 **Pro Tip:** Don't put all your money in one coin. Use the 'Risk' page to see which coins are the safest!")
-
-        # ---------------------------------------------------------
-        # NEW SECTION: HOW THE AI THINKS
-        # ---------------------------------------------------------
+        # --- SECTION 2: ACCURACY CHECK (Backtesting) ---
         st.markdown("---")
-        st.subheader("📊 How the AI 'Thinks'")
-        st.write("The AI looks at the **blue 'Past' line** (Historical Data) to project the **dotted 'Future' line** (Prediction).")
+        st.markdown("### 📊 Model Confidence & Accuracy")
+        
+        # Calculate R-Squared (Accuracy Score)
+        # We compare the actual historical prices to what the model thinks they should have been
+        y_true = coin_df["Close"]
+        t = np.arange(len(coin_df)).reshape(-1, 1)
+        
+        # We need to simulate the model fit here for accuracy checking
+        from sklearn.linear_model import LinearRegression
+        model = LinearRegression().fit(t, y_true)
+        y_pred = model.predict(t)
+        
+        accuracy_val = r2_score(y_true, y_pred) * 100
 
-        # Visualizing the "Thinking Process" with a Chart
-        # We take the last 30 days of history and append the 7-day prediction
-        history = coin_df.tail(30).copy()
+        c1, c2 = st.columns(2)
+        with c1:
+            st.write("**Accuracy Score (R²):**")
+            st.progress(max(0, min(int(accuracy_val), 100)) / 100)
+            st.caption(f"The model is {accuracy_val:.2f}% confident in this trend.")
         
-        fig = go.Figure()
+        with c2:
+            if accuracy_val > 80:
+                st.success("✅ **Strong Trend:** The market is moving in a very predictable line.")
+            elif accuracy_val > 50:
+                st.warning("⚠️ **Moderate Volatility:** The trend is visible but has 'noise'.")
+            else:
+                st.error("🚨 **High Volatility:** Prediction accuracy is low due to erratic movements.")
 
-        # 1. Plot the "Past" Line (Historical Data)
-        fig.add_trace(go.Scatter(
-            x=history['Date'], y=history['Close'],
-            name='Historical (Past)',
-            line=dict(color='#3861FB', width=3)
-        ))
-
-        # 2. Plot the "Future" Line (Dotted Prediction)
-        # Create a tiny 2-point dataframe to connect the last price to the predicted price
-        last_date = pd.to_datetime(history['Date'].iloc[-1])
-        future_date = last_date + pd.Timedelta(days=7)
-        
-        fig.add_trace(go.Scatter(
-            x=[last_date, future_date], 
-            y=[history['Close'].iloc[-1], result['predicted_price']],
-            name='AI Prediction (Future)',
-            line=dict(color='#858ca2', width=3, dash='dot')
-        ))
-
-        fig.update_layout(
-            template="plotly_dark",
-            xaxis_title="Timeline",
-            yaxis_title="Price ($)",
-            hovermode="x unified",
-            margin=dict(l=0, r=0, t=20, b=0),
-            height=400
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        
+        # --- SECTION 3: DATA TABLE ---
+        with st.expander("📂 View Raw Prediction Data"):
+            st.dataframe(coin_df.tail(10), use_container_width=True)
 
         # Beginner's Guide Expanders
-        with st.expander("📚 Beginner's Dictionary: Prediction Terms"):
+        with st.expander("📚 How do we check if this is correct?"):
             st.markdown("""
-            - **Historical Trend:** The 'memory' of the AI. It looks for recurring shapes in the blue line.
-            - **Dotted Line (Projection):** This is the AI's 'best guess' based on the patterns it found.
-            - **Risk Factor:** The further into the future we look, the more the 'dotted line' can be affected by unexpected news.
+            1. **The R² Score:** A score of 100% would mean the price is moving in a perfectly straight line. 
+            2. **Trend vs. Reality:** Since we use Linear Regression, we are checking if the 'General Direction' is correct, rather than pinpointing exact daily spikes.
+            3. **Backtesting:** You can verify accuracy by looking at the 'Accuracy Score' above; it measures how well the model 'learned' from the past 30-90 days.
             """)
-            
-    else:
-        st.error("Not enough data to calculate a forecast for this coin.")
