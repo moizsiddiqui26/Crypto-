@@ -5,35 +5,54 @@ import time
 # PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="CryptoPort AI",
+    page_title="🚀 CryptoPort AI",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- NEW: HIDE STREAMLIT HEADER & FOOTER ---
-# This removes the top bar and "Deploy" button for a professional look
+# --- CSS: HIDE HEADER, FOOTER, AND DISABLE TEXT SELECTION ---
 st.markdown("""
     <style>
+        /* Hide Streamlit Elements */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
         .stAppDeployButton {display:none;}
+
+        /* Disable Text Selection & Context Menu feel */
+        * {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and Consumer Preview */
+            user-select: none; /* Standard syntax */
+        }
+        
+        /* Allow selection in inputs only (so users can still type) */
+        input, textarea {
+            -webkit-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# IMPORTS
+# IMPORTS - Ensure 'ui' folder contains 'components.py'
 # ============================================================
+try:
+    from ui.components import render_header, render_ticker
+except ImportError as e:
+    st.error(f"Folder Structure Error: {e}")
+    st.stop()
+
 from auth.auth_service import login_user, register_user
-from ui.components import render_header, render_ticker
 from ui import dashboard
 from services.live_prices import get_live_prices
 from services.alert_engine import check_alerts
 from services.email_service import send_welcome_email
 from db.database import init_db
 
-# ============================================================
+# ... (Rest of your app.py remains the same)# ============================================================
 # INITIALIZE DATABASE
 # ============================================================
 init_db()
