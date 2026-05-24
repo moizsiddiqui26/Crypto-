@@ -17,7 +17,7 @@ from ui.components import render_header, render_ticker
 from ui import dashboard
 from services.live_prices import get_live_prices
 from services.alert_engine import check_alerts
-from services.email_service import send_welcome_email
+from services.email_service import send_welcome_email  # Used for alerts
 from db.database import init_db
 
 # Initialize database
@@ -38,7 +38,7 @@ if "page" not in st.session_state:
     st.session_state.page = "📊 Dashboard"
 
 # ============================================================
-# LOGIN UI
+# LOGIN & REGISTRATION UI
 # ============================================================
 def login_ui():
     st.markdown("""
@@ -50,23 +50,52 @@ def login_ui():
 
     col1, col2, col3 = st.columns([2, 4, 2])
     with col2:
+        # LOGIN MODE
         if st.session_state.mode == "login":
             st.markdown('<h2 style="text-align:center;">🔐 Login</h2>', unsafe_allow_html=True)
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
+            email = st.text_input("Email", key="login_email")
+            password = st.text_input("Password", type="password", key="login_pass")
+            
             if st.button("🚀 Login", use_container_width=True):
                 result = login_user(email, password)
                 if result["success"]:
                     st.session_state.auth = True
                     st.session_state.email = email
+                    # Add Login Alert Email
+                    send_welcome_email(email, "Security Alert: New Login Detected", 
+                                     f"Hello, your CryptoPort account was just accessed at {time.strftime('%Y-%m-%d %H:%M:%S')}.")
                     st.rerun()
                 else:
                     st.error(result["msg"])
-            if st.button("📝 Create Account", use_container_width=True):
+            
+            if st.button("📝 Create New Account", use_container_width=True):
                 st.session_state.mode = "register"
                 st.rerun()
+
+        # REGISTER MODE (Fixed Logic)
         else:
-            # Registration logic...
+            st.markdown('<h2 style="text-align:center;">📝 Register</h2>', unsafe_allow_html=True)
+            new_email = st.text_input("Choose Email", key="reg_email")
+            new_password = st.text_input("Choose Password", type="password", key="reg_pass")
+            confirm_password = st.text_input("Confirm Password", type="password", key="reg_conf")
+            
+            if st.button("✅ Create Account", use_container_width=True):
+                if new_password != confirm_password:
+                    st.error("Passwords do not match!")
+                elif len(new_password) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    result = register_user(new_email, new_password)
+                    if result["success"]:
+                        st.success("Account created successfully!")
+                        # Add Registration Welcome/Alert Email
+                        send_welcome_email(new_email, "Welcome to CryptoPort AI!", 
+                                         "Your account has been created successfully. Welcome to the future of crypto investing!")
+                        st.session_state.mode = "login"
+                        st.rerun()
+                    else:
+                        st.error(result["msg"])
+            
             if st.button("⬅ Back to Login", use_container_width=True):
                 st.session_state.mode = "login"
                 st.rerun()
@@ -75,7 +104,6 @@ def login_ui():
 # MAIN APP
 # ============================================================
 def main_app():
-    # Renders the professional header
     render_header(st.session_state.email)
 
     current_time = time.time()
