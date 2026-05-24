@@ -16,21 +16,21 @@ def render_forecast(df):
         st.markdown("### Hypothetical Investment ($)")
         amount = st.number_input("", value=1000.0, label_visibility="collapsed")
 
+    # Data Preparation: Ensure unique daily prices for the selected coin
+    coin_df = df[df["Crypto"] == coin].copy()
+    coin_df['Date'] = pd.to_datetime(coin_df['Date']).dt.normalize()
+    # Grouping ensures 7 distinct dates in the table later
+    coin_df = coin_df.groupby('Date')['Close'].mean().reset_index().sort_values("Date")
+    
+    if len(coin_df) < 14:
+        st.warning("⚠️ Insufficient historical data for this asset to perform analysis.")
+        return
+
     # --- 2. FUTURE FORECAST RESULTS ---
     st.markdown("---")
     st.markdown("### 🚀 Future Forecast (Next 7 Days)")
     
-    # Process data for the specific coin
-    # Grouping by Date ensures we have one unique price per day
-    coin_df = df[df["Crypto"] == coin].copy()
-    coin_df['Date'] = pd.to_datetime(coin_df['Date']).dt.normalize()
-    coin_df = coin_df.groupby('Date')['Close'].mean().reset_index().sort_values("Date")
-    
-    if len(coin_df) < 14:
-        st.warning("⚠️ Insufficient historical data for this asset.")
-        return
-
-    # Call the engine for future prediction
+    # Calculate future prediction using the engine
     result = get_forecast_summary(coin_df, amount, 7)
     
     f1, f2, f3 = st.columns(3)
@@ -62,43 +62,44 @@ def render_forecast(df):
     st.markdown("---")
     st.markdown("### 🏆 AI Performance Review (Last 7 Working Days)")
     
-    # Backtesting Logic: Hide the last 7 days and predict them
+    # Backtesting Logic
+    # We take all data EXCEPT the last 7 days to train a "past version" of the model
     train_data = coin_df.iloc[:-7].reset_index(drop=True)
     actual_last_7 = coin_df.iloc[-7:].reset_index(drop=True)
     
-    # Train model on past data
     X_train = np.arange(len(train_data)).reshape(-1, 1)
     y_train = train_data["Close"]
     model = LinearRegression().fit(X_train, y_train)
     
-    # Predict the 7 days that already happened
+    # Predict the 7 days that already happened to see how close the AI was
     X_test = np.arange(len(train_data), len(train_data) + 7).reshape(-1, 1)
     predicted_last_7 = model.predict(X_test)
 
-    # Create Table with Correct Unique Dates
+    # Create Comparison DataFrame
     comparison_df = pd.DataFrame({
         "Date": actual_last_7["Date"].dt.strftime('%Y-%m-%d'),
         "Actual Price": actual_last_7["Close"].values,
         "AI Prediction": predicted_last_7,
     })
     
+    # Calculate % Difference
     comparison_df["Difference (%)"] = ((comparison_df["AI Prediction"] - comparison_df["Actual Price"]) / comparison_df["Actual Price"]) * 100
     
-    # Styling for the table
+    # Define styling function for the difference column
     def style_diff(val):
         color = '#ff4b4b' if abs(val) > 5 else '#00ffcc'
         return f'color: {color}; font-weight: bold;'
 
+    # Apply styling and format values
     styled_table = comparison_df.style.format({
         "Actual Price": "${:,.2f}",
         "AI Prediction": "${:,.2f}",
         "Difference (%)": "{:,.2f}%"
     }).map(style_diff, subset=['Difference (%)'])
 
+    # Render Table
     st.table(styled_table)
 
-    # Accuracy Summary Metrics
+    # Summary Performance Metric
     avg_err = comparison_df["Difference (%)"].abs().mean()
-    m1, m2 = st.columns(2)
-    m1.write(f"**Average Model Deviation:** {avg_err:.2f}%")
-    m2.write("**Model Reliability:** ✅ High" if avg_err < 10 else "⚠️ Moderate")
+    st.markdown(f"**Average Model Deviation:** `{avg_err:.2f}%` over the last 7 days.")
