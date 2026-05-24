@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from config import EMAIL_USER, EMAIL_PASS
 
 # ======================================================
-# 🚀 CORE EMAIL SENDER ENGINE
+# 🚀 CORE EMAIL ENGINE
 # ======================================================
 def send_email(to_email: str, subject: str, html_content: str):
     """
@@ -32,111 +32,117 @@ def send_email(to_email: str, subject: str, html_content: str):
         return False
 
 # ======================================================
-# 📝 TRANSACTION NOTIFICATION (BUY/SELL RECEIPT)
+# 🚀 1. WELCOME EMAIL (Fixes app.py ImportError)
 # ======================================================
-def send_transaction_notification(to_email, coin, action, amount):
-    """
-    Sends an immediate receipt after a Buy or Sell transaction.
-    This provides a 'banking app' experience for the user.
-    """
-    subject = f"✅ Transaction Confirmed: {action} {coin}"
-    
-    # Dynamic styling based on transaction type
-    accent_color = "#00ffcc" if action == "Buy" else "#ff4b4b"
-    header_title = "Purchase Receipt" if action == "Buy" else "Sale Confirmation"
-
+def send_welcome_email(to_email, user_name):
+    subject = "🚀 Welcome to CryptoPort AI Elite!"
     html = f"""
-    <html>
-    <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color:#0f0c29; color:#ffffff; padding:20px;">
-        <div style="max-width:600px; margin:0 auto; background-color:#1a1a3a; border-radius:15px; border:1px solid #302b63; overflow:hidden;">
-            <div style="background-color:{accent_color}; padding:20px; text-align:center;">
-                <h1 style="color:#0f0c29; margin:0; font-size:22px;">{header_title}</h1>
-            </div>
-            <div style="padding:30px;">
-                <p style="color:#94A3B8; font-size:16px;">Order Details:</p>
-                <div style="background-color:#0f0c29; padding:20px; border-radius:10px; border-left:4px solid {accent_color};">
-                    <table style="width:100%; border-spacing: 0 10px;">
-                        <tr><td style="color:#94A3B8;">Asset:</td><td style="text-align:right; font-weight:bold;">{coin}</td></tr>
-                        <tr><td style="color:#94A3B8;">Type:</td><td style="text-align:right; font-weight:bold; color:{accent_color};">{action.upper()}</td></tr>
-                        <tr><td style="color:#94A3B8;">Cash Value:</td><td style="text-align:right; font-weight:bold;">${amount:,.2f}</td></tr>
-                        <tr><td style="color:#94A3B8;">Status:</td><td style="text-align:right; font-weight:bold; color:#00ffcc;">SETTLED</td></tr>
-                    </table>
-                </div>
-                <p style="text-align:center; color:#94A3B8; font-size:12px; margin-top:20px;">
-                    Your portfolio weighted average price has been updated automatically.
-                </p>
-            </div>
-        </div>
-    </body>
-    </html>
+    <div style="font-family: sans-serif; background-color: #0f0c29; color: white; padding: 30px; border-radius: 15px; border: 1px solid #302b63;">
+        <h2 style="color: #00ffcc;">Welcome to the Elite, {user_name}!</h2>
+        <p>Your account has been successfully created. You now have access to:</p>
+        <ul style="color: #94A3B8;">
+            <li>Real-time Portfolio Tracking (Weighted Average Price)</li>
+            <li>AI-Powered Price Forecasting</li>
+            <li>Instant Buy/Sell Email Receipts</li>
+            <li>Custom Price Alerts</li>
+        </ul>
+        <p>Start by heading to the <b>Forecast</b> page to see where the market is moving!</p>
+        <hr style="border: 0; border-top: 1px solid #302b63; margin: 20px 0;">
+        <p style="font-size: 12px; color: #94A3B8;">Happy Trading, <br> The CryptoPort Team</p>
+    </div>
     """
     return send_email(to_email, subject, html)
 
 # ======================================================
-# 📊 PORTFOLIO SUMMARY STATEMENT
+# 🔐 2. OTP / LOGIN VERIFICATION
+# ======================================================
+def send_otp_email(to_email, otp_code):
+    subject = f"🔐 {otp_code} is your Verification Code"
+    html = f"""
+    <div style="font-family: sans-serif; background-color: #0f0c29; color: white; padding: 40px; border-radius: 15px; text-align: center;">
+        <h2 style="color: #00ffcc;">Security Code</h2>
+        <p>Enter the code below to complete your login:</p>
+        <div style="background: #1a1a3a; padding: 20px; font-size: 32px; font-weight: bold; letter-spacing: 10px; border: 1px solid #00ffcc; display: inline-block; margin: 20px 0;">
+            {otp_code}
+        </div>
+        <p style="color: #ff4b4b; font-size: 14px;">This code expires in 10 minutes.</p>
+    </div>
+    """
+    return send_email(to_email, subject, html)
+
+# ======================================================
+# ✅ 3. TRANSACTION NOTIFICATION (BUY/SELL RECEIPT)
+# ======================================================
+def send_transaction_notification(to_email, coin, action, amount):
+    subject = f"✅ Transaction Confirmed: {action} {coin}"
+    accent_color = "#00ffcc" if action == "Buy" else "#ff4b4b"
+    
+    html = f"""
+    <div style="font-family: sans-serif; background-color: #0f0c29; color: white; padding: 25px; border-radius: 12px; border-left: 6px solid {accent_color};">
+        <h3 style="color: {accent_color}; margin-top: 0;">{action} Order Settled</h3>
+        <table style="width: 100%; color: white;">
+            <tr><td><b>Asset:</b></td><td style="text-align: right;">{coin}</td></tr>
+            <tr><td><b>Amount:</b></td><td style="text-align: right;">${amount:,.2f}</td></tr>
+            <tr><td><b>Status:</b></td><td style="text-align: right; color: #00ffcc;">SUCCESS</td></tr>
+        </table>
+        <p style="font-size: 12px; color: #94A3B8; margin-top: 20px;">Your weighted average price has been updated.</p>
+    </div>
+    """
+    return send_email(to_email, subject, html)
+
+# ======================================================
+# 📊 4. PORTFOLIO SUMMARY STATEMENT
 # ======================================================
 def send_portfolio_summary_email(to_email, portfolio_df):
-    """
-    Sends a full breakdown of current holdings and net profit/loss.
-    """
-    subject = "📊 Your CryptoPort AI Portfolio Statement"
+    subject = "📊 Your Portfolio Performance Update"
     
     total_invested = portfolio_df["Total Invested"].sum()
     total_value = portfolio_df["Current Value"].sum()
     total_profit = total_value - total_invested
-    roi = (total_profit / total_invested * 100) if total_invested != 0 else 0
-
-    # Build the HTML table rows
-    table_rows = ""
+    
+    rows = ""
     for _, row in portfolio_df.iterrows():
         p_color = "#00ffcc" if row["P/L ($)"] >= 0 else "#ff4b4b"
-        table_rows += f"""
-        <tr style="border-bottom:1px solid #302b63;">
-            <td style="padding:12px;">{row['Asset']}</td>
-            <td style="padding:12px;">{row['Quantity']:.4f}</td>
-            <td style="padding:12px; text-align:right;">${row['Current Value']:,.2f}</td>
-            <td style="padding:12px; text-align:right; color:{p_color}; font-weight:bold;">{row['ROI (%)']:.2f}%</td>
+        rows += f"""
+        <tr style="border-bottom: 1px solid #302b63;">
+            <td style="padding: 10px;">{row['Asset']}</td>
+            <td style="padding: 10px; text-align: right;">${row['Current Value']:,.2f}</td>
+            <td style="padding: 10px; text-align: right; color: {p_color};">{row['ROI (%)']:.2f}%</td>
         </tr>
         """
 
     html = f"""
-    <html>
-    <body style="font-family:sans-serif; background-color:#0f0c29; color:white; padding:20px;">
-        <h2 style="color:#00ffcc;">Portfolio Performance Summary</h2>
-        <div style="background:#1a1a3a; padding:20px; border-radius:12px; margin-bottom:20px; border:1px solid #302b63;">
-            <p><b>Current Portfolio Value:</b> <span style="font-size:22px; color:#00ffcc;">${total_value:,.2f}</span></p>
-            <p><b>Net P/L:</b> <span style="color:{'#00ffcc' if total_profit >= 0 else '#ff4b4b'};">${total_profit:,.2f} ({roi:.2f}%)</span></p>
+    <div style="font-family: sans-serif; background-color: #0f0c29; color: white; padding: 20px;">
+        <h2 style="color: #00ffcc;">Portfolio Summary</h2>
+        <div style="background: #1a1a3a; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <p>Total Value: <b style="color: #00ffcc; font-size: 20px;">${total_value:,.2f}</b></p>
+            <p>Net P/L: <b style="color: {'#00ffcc' if total_profit >= 0 else '#ff4b4b'};">${total_profit:,.2f}</b></p>
         </div>
-        
-        <table style="width:100%; border-collapse:collapse; background:#1a1a3a; border-radius:10px; overflow:hidden;">
-            <tr style="background:#302b63; color:#94A3B8; text-align:left;">
-                <th style="padding:12px;">Asset</th><th style="padding:12px;">Quantity</th><th style="padding:12px; text-align:right;">Value</th><th style="padding:12px; text-align:right;">ROI</th>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #302b63; color: #94A3B8;">
+                <th style="padding: 10px; text-align: left;">Asset</th>
+                <th style="padding: 10px; text-align: right;">Value</th>
+                <th style="padding: 10px; text-align: right;">ROI</th>
             </tr>
-            {table_rows}
+            {rows}
         </table>
-    </body>
-    </html>
+    </div>
     """
     return send_email(to_email, subject, html)
 
 # ======================================================
-# 🚨 PRICE ALERT NOTIFICATION
+# 🚨 5. PRICE ALERT NOTIFICATION
 # ======================================================
 def send_alert_email(to_email, coin, condition, target_price, current_price):
-    """
-    Sends an alert when a user-defined price target is hit.
-    """
-    subject = f"🚨 Price Alert: {coin} Target Reached!"
+    subject = f"🚨 Price Alert: {coin} Target Hit!"
     color = "#00ffcc" if condition == "above" else "#ff4b4b"
 
     html = f"""
-    <div style="background-color:#0f0c29; color:white; padding:30px; border-radius:15px; border:2px solid {color}; font-family:sans-serif;">
-        <h2 style="color:{color};">Target Triggered!</h2>
-        <p>Your alert for <b>{coin}</b> has been triggered.</p>
-        <p>Condition: {coin} price is <b>{condition} ${target_price:,.2f}</b>.</p>
-        <hr style="border:0; border-top:1px solid #302b63; margin:20px 0;">
-        <p style="font-size:18px;">Current Market Price: <b style="color:{color};">${current_price:,.2f}</b></p>
-        <p style="font-size:12px; color:#94A3B8; margin-top:20px;">This alert has now been deactivated. Log in to set a new one.</p>
+    <div style="font-family: sans-serif; background-color: #0f0c29; color: white; padding: 30px; border-radius: 15px; border: 2px solid {color};">
+        <h2 style="color: {color};">Target Triggered!</h2>
+        <p>Your alert for <b>{coin}</b> has been activated.</p>
+        <p>Market Condition: Price is <b>{condition} ${target_price:,.2f}</b></p>
+        <p style="font-size: 24px; font-weight: bold;">Current Price: ${current_price:,.2f}</p>
     </div>
     """
     return send_email(to_email, subject, html)
