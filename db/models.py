@@ -1,6 +1,38 @@
 from db.database import get_connection
 # Add this to your existing db/models.py
+from db.database import get_connection
 
+# ... (Keep your existing create_user, fetch_user functions)
+
+def add_holding(email, crypto, amount, date):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO holdings (email, crypto, amount, date) VALUES (?, ?, ?, ?)",
+        (email, crypto, amount, date)
+    )
+    conn.commit()
+    conn.close()
+
+# NEW: Sell Function
+def sell_holding(email, crypto, amount, date):
+    conn = get_connection()
+    cur = conn.cursor()
+    # Store as negative amount to subtract from total balance
+    cur.execute(
+        "INSERT INTO holdings (email, crypto, amount, date) VALUES (?, ?, ?, ?)",
+        (email, crypto, -abs(amount), date)
+    )
+    conn.commit()
+    conn.close()
+
+def get_holdings(email):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT crypto, amount, date FROM holdings WHERE email=?", (email,))
+    data = cur.fetchall()
+    conn.close()
+    return data
 def sell_holding(email, crypto, amount_to_sell, date):
     """
     Records a sell transaction by inserting a negative amount.
