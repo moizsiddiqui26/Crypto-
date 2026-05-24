@@ -145,7 +145,7 @@ def render_header(user_email):
         <div class="header-top">
             <div class="header-title">
                 🚀 CRYPTOPORT
-                <span class="elite-tag">AI ELITE</span>
+                <span class="elite-tag"></span>
             </div>
             <div class="user-badge">
                 <span class="status-dot"></span>
