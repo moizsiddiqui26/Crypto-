@@ -100,7 +100,28 @@ def send_welcome_email(to_email: str):
 
     return send_email(to_email, subject, html)
 
-
+def send_transaction_notification(to_email: str, coin: str, action: str, amount: float):
+    """
+    Sends an immediate receipt for a Buy or Sell transaction.
+    """
+    subject = f"📝 Transaction Confirmation: {action} {coin}"
+    
+    color = "#00ffcc" if action == "Buy" else "#ff4b4b"
+    
+    html = f"""
+    <html>
+    <body style="font-family:Arial;background:#0f0c29;color:white;padding:20px;">
+        <h2 style="color:{color};">{action} Order Confirmed</h2>
+        <div style="background:#302b63;padding:20px;border-radius:10px;">
+            <p><b>Asset:</b> {coin}</p>
+            <p><b>Amount:</b> ${amount:,.2f}</p>
+            <p><b>Status:</b> Completed</p>
+        </div>
+        <p style="margin-top:20px; color:#94A3B8;">Your portfolio has been updated automatically.</p>
+    </body>
+    </html>
+    """
+    return send_email(to_email, subject, html)
 # =========================
 # OTP EMAIL
 # =========================
