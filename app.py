@@ -12,6 +12,7 @@ st.set_page_config(
 # ============================================================
 # IMPORTS
 # ============================================================
+# Corrected paths to match project structure
 from auth.auth_service import login_user, register_user
 from ui.components import render_header, render_ticker
 from ui import dashboard
@@ -20,11 +21,11 @@ from services.alert_engine import check_alerts
 from services.email_service import send_welcome_email
 from db.database import init_db
 
-# Initialize database
+# Initialize database on startup
 init_db()
 
 # ============================================================
-# SESSION STATE
+# SESSION STATE MANAGEMENT
 # ============================================================
 if "auth" not in st.session_state:
     st.session_state.auth = False
@@ -61,43 +62,38 @@ def login_ui():
                 if result["success"]:
                     st.session_state.auth = True
                     st.session_state.email = email
-                    # EMAIL ALERT: Notify user of login
-                    send_welcome_email(
-                        email, 
-                        "🚀 Security Alert: New Login detected", 
-                        f"Your account was accessed on {time.strftime('%Y-%m-%d %H:%M:%S')}. If this wasn't you, please reset your password."
-                    )
+                    # Trigger Security Alert Email
+                    send_welcome_email(email) 
                     st.rerun()
                 else:
                     st.error(result["msg"])
             
-            if st.button("📝 Go to Registration", use_container_width=True):
+            if st.button("📝 Create New Account", use_container_width=True):
                 st.session_state.mode = "register"
                 st.rerun()
 
-        # --- REGISTER MODE ---
+        # --- REGISTER MODE (Fixed Variable Scoping) ---
         else:
-            st.markdown('<h2 style="text-align:center;">📝 Create Account</h2>', unsafe_allow_html=True)
-            # FIX: Define inputs BEFORE the button is clicked
-            new_email = st.text_input("Enter Email", key="reg_email")
-            new_password = st.text_input("Enter Password", type="password", key="reg_pass")
+            st.markdown('<h2 style="text-align:center;">📝 Register</h2>', unsafe_allow_html=True)
+            
+            # Fields defined BEFORE the registration logic to prevent NameErrors
+            new_email = st.text_input("Choose Email", key="reg_email")
+            new_password = st.text_input("Choose Password", type="password", key="reg_pass")
             confirm_password = st.text_input("Confirm Password", type="password", key="reg_conf")
             
-            if st.button("✅ Register Now", use_container_width=True):
+            if st.button("✅ Create Account", use_container_width=True):
                 if not new_email or not new_password:
                     st.warning("Please fill in all fields.")
                 elif new_password != confirm_password:
                     st.error("Passwords do not match!")
+                elif len(new_password) < 6:
+                    st.error("Password must be at least 6 characters.")
                 else:
                     result = register_user(new_email, new_password)
                     if result["success"]:
-                        st.success("Account Created!")
-                        # EMAIL ALERT: Welcome Email
-                        send_welcome_email(
-                            new_email, 
-                            "🌟 Welcome to CryptoPort AI!", 
-                            "Your account is ready. Start tracking your assets and using our AI forecasting tools now."
-                        )
+                        st.success("Account created successfully!")
+                        # Trigger Welcome Email
+                        send_welcome_email(new_email)
                         st.session_state.mode = "login"
                         st.rerun()
                     else:
@@ -108,11 +104,13 @@ def login_ui():
                 st.rerun()
 
 # ============================================================
-# MAIN APP
+# MAIN APPLICATION LOGIC
 # ============================================================
 def main_app():
+    # Renders the professional navigation and header
     render_header(st.session_state.email)
 
+    # Real-time price update logic (every 5 seconds)
     current_time = time.time()
     if current_time - st.session_state.last_update > 5:
         try:
@@ -123,11 +121,14 @@ def main_app():
 
     prices = st.session_state.prices
     if prices:
+        # Check for price alerts and display the scrolling ticker
         check_alerts(prices)
         render_ticker(prices)
     
+    # Load the main dashboard system
     dashboard.main()
 
+# Entry Point
 if not st.session_state.auth:
     login_ui()
 else:
