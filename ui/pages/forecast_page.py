@@ -111,8 +111,6 @@ def render_forecast(df):
     m1.metric("Avg. Deviation", f"{avg_err_val:.2f}%", 
               help="Lower is better. Shows average gap between AI and Truth.")
     
-    m2.metric("Trend Strength (R²)", f"{max(0, r2_val*100):.1f}%", 
-              help="Closer to 100% means the asset is following a perfect linear path.")
     
     m3.metric("Directional Accuracy", f"{dir_acc_val}%", 
               help="How often the AI correctly guessed 'Up' vs 'Down'.")
