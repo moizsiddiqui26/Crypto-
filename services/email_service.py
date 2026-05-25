@@ -31,28 +31,31 @@ def send_email(to_email: str, subject: str, html_content: str):
         print(f"CRITICAL EMAIL ERROR: {e}")
         return False
 
-# ======================================================
-# 🚀 1. WELCOME EMAIL (Fixes app.py ImportError)
-# ======================================================
-def send_welcome_email(to_email, user_name):
-    subject = "🚀 Welcome to CryptoPort AI Elite!"
-    html = f"""
-    <div style="font-family: sans-serif; background-color: #0f0c29; color: white; padding: 30px; border-radius: 15px; border: 1px solid #302b63;">
-        <h2 style="color: #00ffcc;">Welcome to the Elite, {user_name}!</h2>
-        <p>Your account has been successfully created. You now have access to:</p>
-        <ul style="color: #94A3B8;">
-            <li>Real-time Portfolio Tracking (Weighted Average Price)</li>
-            <li>AI-Powered Price Forecasting</li>
-            <li>Instant Buy/Sell Email Receipts</li>
-            <li>Custom Price Alerts</li>
-        </ul>
-        <p>Start by heading to the <b>Forecast</b> page to see where the market is moving!</p>
-        <hr style="border: 0; border-top: 1px solid #302b63; margin: 20px 0;">
-        <p style="font-size: 12px; color: #94A3B8;">Happy Trading, <br> The CryptoPort Team</p>
-    </div>
-    """
-    return send_email(to_email, subject, html)
+# =========================
+# WELCOME EMAIL
+# =========================
+def send_welcome_email(to_email: str):
 
+    subject = "🎉 Welcome to Crypto SaaS Platform"
+
+    html = f"""
+    <html>
+    <body style="font-family:Arial;background:#0f0c29;color:white;padding:20px;">
+        <h2 style="color:#4cc9f0;">🚀 Welcome to Crypto SaaS</h2>
+        <p>Your account has been successfully created.</p>
+        
+        <div style="background:#302b63;padding:15px;border-radius:10px;">
+            <p>✔ Track your portfolio</p>
+            <p>✔ AI-based insights</p>
+            <p>✔ Real-time crypto prices</p>
+        </div>
+
+        <p style="margin-top:20px;">Happy Investing 💰</p>
+    </body>
+    </html>
+    """
+
+    return send_email(to_email, subject, html)
 # ======================================================
 # 🔐 2. OTP / LOGIN VERIFICATION
 # ======================================================
