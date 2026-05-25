@@ -82,26 +82,3 @@ def render_signals(df):
         - 🔴 **Above 70 (Overbought):** The asset may be overvalued. Potential Selling opportunity.
         """)
 
-    # Visual RSI Progress Bar for the selected coin
-    rsi_val = result["rsi"]
-    st.write(f"**Current {coin} RSI Intensity:**")
-    
-    # Creating a custom progress bar color based on value
-    bar_color = "green" if rsi_val < 30 else "red" if rsi_val > 70 else "blue"
-    st.progress(int(rsi_val) / 100)
-    
-    st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8;">
-        <span>OVERSOLD (30)</span>
-        <span style="color:{'#00ffcc' if bar_color=='green' else '#ff4b4b' if bar_color=='red' else 'white'}; 
-        font-weight:bold;">CURRENT: {rsi_val:.2f}</span>
-        <span>OVERBOUGHT (70)</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Professional Note
-    st.info("""
-    💡 **Pro Tip:** In a strong uptrend, RSI often stays above 40 and can hit 90. 
-    In a strong downtrend, it often stays below 60 and can hit 10. Always look at the 
-    **Market Trend** alongside the RSI for confirmation.
-    """)
