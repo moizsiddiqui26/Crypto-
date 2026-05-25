@@ -24,7 +24,7 @@ def main():
 
     if page == "📊 Dashboard":
         render_dashboard(df)
-    elif st.session_state.page == "🕯 Advance Chart":
+    elif page == "🕯 Advance Chart":
         # This calls the file you uploaded!
         render_advanced_charts(df)
     elif page == "👤 Portfolio":
