@@ -170,8 +170,8 @@ def render_header(user_email):
             st.session_state.page = "📊 Dashboard"
             st.rerun()
     with col2:
-        if st.button("👤 Portfolio", use_container_width=True):
-            st.session_state.page = "👤 Portfolio"
+        if st.button("📈 Signals", use_container_width=True):
+            st.session_state.page = "📈 Trading Signals"
             st.rerun()
     with col3:
         if st.button("🔮 Forecast", use_container_width=True):
@@ -182,8 +182,8 @@ def render_header(user_email):
             st.session_state.page = "⚠ Risk"
             st.rerun()
     with col5:
-        if st.button("📈 Signals", use_container_width=True):
-            st.session_state.page = "📈 Trading Signals"
+        if st.button("👤 Portfolio", use_container_width=True):
+            st.session_state.page = "👤 Portfolio"
             st.rerun()
     with col6:
         if st.button("🤖 AI Assistant", use_container_width=True):
