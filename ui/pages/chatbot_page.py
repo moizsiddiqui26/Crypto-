@@ -1,57 +1,94 @@
 import streamlit as st
 import pandas as pd
-from services.ai_assistant import ask_ai
-from db.models import get_holdings
+import os
+import sys
+
+# --- PATH FIX FOR ROBUST IMPORTS ---
+dir_path = os.path.dirname(os.path.realpath(__file__))
+root_path = os.path.abspath(os.path.join(dir_path, "../../.."))
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
+
+try:
+    from services.ai_assistant import ask_ai
+    from db.models import get_holdings
+except ImportError:
+    st.error("Error loading backend services.")
 
 def render_chatbot_page(df):
-    st.markdown("# 🤖 AI Investment Assistant")
+    # Professional Header with Status Indicator
+    h_col1, h_col2 = st.columns([4, 1])
+    with h_col1:
+        st.markdown('<div class="section-title">🤖 AI Investment Copilot</div>', unsafe_allow_html=True)
+    with h_col2:
+        st.markdown('<p style="color:#00ffcc; text-align:right; font-size:12px;">● System Online</p>', unsafe_allow_html=True)
 
     # ============================================================
-    # NEW USER GUIDE (Beginner Friendly)
+    # 📘 ENHANCED USER GUIDE & QUICK ACTIONS
     # ============================================================
-    with st.expander("📖 New User Guide: How to use this AI"):
+    with st.expander("📖 AI Mastery Guide: Get better results", expanded=False):
         st.markdown("""
-        ### Welcome to your AI Copilot! 
-        You don't need to be a professional trader to get value here. Think of this AI as your **financial mentor**.
-        
-        **Things you can ask:**
-        - **"Explain Bitcoin like I'm 5"** — Great for understanding the basics.
-        - **"Is it a good time to buy Ethereum?"** — AI analyzes the current charts and trends for you.
-        - **"How can I lower my portfolio risk?"** — AI looks at your current holdings and suggests safer moves.
+        **How to talk to your Copilot:**
+        1. **Portfolio Reviews**: Ask *"Should I rebalance my current holdings?"*
+        2. **Technical Education**: Ask *"What is the difference between Proof of Work and Proof of Stake?"*
+        3. **Market Sentiment**: Ask *"What is the market sentiment for Ethereum today?"*
         """)
-        st.info("💡 **Pro Tip:** Be specific. Instead of asking 'Is BTC good?', try 'Is BTC a good long-term hold given its current volatility?'")
+        st.info("💡 **Pro Tip:** The AI has access to your current portfolio data and live market prices.")
 
     st.markdown("---")
 
     # ============================================================
-    # AI COMMAND CENTER
+    # 🛠️ SIDEBAR-STYLE TOOLS (PORTFOLIO CONTEXT)
     # ============================================================
-    col_chat, col_tools = st.columns([3, 1])
+    col_chat, col_tools = st.columns([2.5, 1])
 
     # Portfolio Context for AI
     email = st.session_state.get("email")
     holdings = get_holdings(email)
-    portfolio_summary = ""
-    if holdings:
-        pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
-        portfolio_summary = pf.to_string()
+    portfolio_summary = "User has no holdings."
+    
+    with col_tools:
+        st.markdown("### 🧳 Your Context")
+        if holdings:
+            pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
+            portfolio_summary = pf.to_string()
+            st.success(f"✅ AI synced with {len(pf)} assets")
+            st.caption("AI is currently analyzing your holdings to provide personalized advice.")
+        else:
+            st.warning("⚠️ No holdings found. AI will provide general market advice.")
+        
+        st.markdown("---")
+        st.markdown("### ⚡ Quick Actions")
+        # Quick Action Buttons that trigger chat
+        if st.button("📊 Review Portfolio", use_container_width=True):
+            st.session_state.temp_prompt = "Based on my current holdings, what is my risk level?"
+        if st.button("📈 Trend Forecast", use_container_width=True):
+            st.session_state.temp_prompt = "Which top 3 coins show the best trend for next week?"
+        if st.button("📉 Risk Check", use_container_width=True):
+            st.session_state.temp_prompt = "Explain the current market RSI and if it's safe to buy."
 
-
+    # ============================================================
+    # 💬 PREMIUM CHAT INTERFACE
+    # ============================================================
     with col_chat:
-        st.markdown("### 💬 Chat with AI")
+        # Chat container for scrollable area
+        chat_container = st.container(height=500, border=True)
         
         if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
+            st.session_state.chat_history = [
+                ("assistant", "Hello! I am your AI Investment Copilot. I have access to your portfolio and live market data. How can I help you today?")
+            ]
 
-        # Display history
-        for role, msg in st.session_state.chat_history:
-            with st.chat_message(role):
-                st.markdown(msg)
+        # Display history within the container
+        with chat_container:
+            for role, msg in st.session_state.chat_history:
+                with st.chat_message(role):
+                    st.markdown(msg)
 
-        # Chat Input logic handling both manual text and Quick Action buttons
-        user_input = st.chat_input("Ask your AI crypto advisor...")
+        # Input handling
+        user_input = st.chat_input("Message your Copilot...")
         
-        # If a Quick Action button was clicked, it overrides user_input
+        # Override user_input if a Quick Action was clicked
         active_prompt = st.session_state.get('temp_prompt') or user_input
 
         if active_prompt:
@@ -59,32 +96,45 @@ def render_chatbot_page(df):
             if 'temp_prompt' in st.session_state:
                 st.session_state.temp_prompt = None
 
+            # Add user message
             st.session_state.chat_history.append(("user", active_prompt))
+            
+            # This triggers a rerun to show the user message immediately, 
+            # then the assistant will process on the next loop.
             with st.chat_message("user"):
                 st.markdown(active_prompt)
 
             with st.chat_message("assistant"):
-                with st.spinner("Analyzing market data..."):
+                with st.spinner("AI is thinking..."):
                     response = ask_ai(active_prompt, portfolio_summary)
                     st.markdown(response)
+                    st.session_state.chat_history.append(("assistant", response))
             
-            st.session_state.chat_history.append(("assistant", response))
+            st.rerun()
 
     # ============================================================
-    # BEGINNER'S DICTIONARY
+    # 📚 DESIGNER DICTIONARY (STYLIZED)
     # ============================================================
     st.markdown("---")
-    st.subheader("📚 Beginner's Crypto Dictionary")
+    st.markdown("### 🏛️ Crypto Knowledge Hub")
+    
+    # CSS for nice cards
+    st.markdown("""
+        <style>
+        .crypto-card {
+            background-color: #1a1a3a;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #00ffcc;
+            height: 120px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     d1, d2, d3 = st.columns(3)
-    
     with d1:
-        st.markdown("**🚀 Bull Market**")
-        st.caption("When prices are going up consistently. Everyone is optimistic!")
-    
+        st.markdown('<div class="crypto-card"><b>🚀 Bull Market</b><br><small>Consistent price increases. High optimism and buying pressure.</small></div>', unsafe_allow_html=True)
     with d2:
-        st.markdown("**🐻 Bear Market**")
-        st.caption("When prices are falling and the market is 'hibernating'.")
-    
+        st.markdown('<div class="crypto-card"><b>🐻 Bear Market</b><br><small>Sustained price drops. Market "hibernation" and caution.</small></div>', unsafe_allow_html=True)
     with d3:
-        st.markdown("**💎 HODL**")
-        st.caption("A term for holding your assets long-term, no matter what happens.")
+        st.markdown('<div class="crypto-card"><b>💎 HODL</b><br><small>A long-term strategy of holding assets regardless of volatility.</small></div>', unsafe_allow_html=True)
