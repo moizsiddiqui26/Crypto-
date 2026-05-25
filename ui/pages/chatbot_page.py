@@ -36,15 +36,6 @@ def render_chatbot_page(df):
         pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
         portfolio_summary = pf.to_string()
 
-    with col_tools:
-        st.markdown("### ⚡ Quick Actions")
-        # Buttons that pre-fill the AI query
-        if st.button("📈 Analyze Trends", use_container_width=True):
-            st.session_state.temp_prompt = "Analyze the top 3 coins based on recent trends."
-        if st.button("🛡️ Check My Risk", use_container_width=True):
-            st.session_state.temp_prompt = "Based on my portfolio data, is my risk level too high?"
-        if st.button("🔮 7-Day Forecast", use_container_width=True):
-            st.session_state.temp_prompt = "Give me a 7-day price forecast for the main coins."
 
     with col_chat:
         st.markdown("### 💬 Chat with AI")
