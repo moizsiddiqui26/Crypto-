@@ -18,53 +18,6 @@ try:
 except ImportError:
     st.error("🚨 Critical Error: Could not load backend services. Check your folder structure.")
 
-def render_portfolio(df):
-    st.markdown('<div class="section-title">💼 Professional Portfolio Manager</div>', unsafe_allow_html=True)
-    
-    email = st.session_state.get("email")
-    if not email:
-        st.warning("Please log in to manage your portfolio.")
-        return
-
-    # ==========================================
-    # 🛒 TRANSACTION UI (BUY & SELL)
-    # ==========================================
-    with st.expander("➕ / ➖ New Transaction (Execute Buy or Sell)", expanded=True):
-        t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-        
-        action = t_col1.radio("Action", ["Buy", "Sell"], help="Buy adds to holdings. Sell reduces them.")
-        coin = t_col2.selectbox("Select Asset", sorted(df["Crypto"].unique()))
-        cash_amount = t_col3.number_input("Cash Amount ($)", min_value=0.0, step=50.0)
-        date = t_col4.date_input("Transaction Date")
-
-        if st.button("Confirm Transaction", use_container_width=True):
-            # Fetch existing data for validation
-            raw_data = get_holdings(email)
-            holdings_df = pd.DataFrame(raw_data, columns=["Crypto", "Amount", "Date"])
-            
-            # Calculate current cash balance for this specific coin
-            current_balance = holdings_df[holdings_df["Crypto"] == coin]["Amount"].sum() if not holdings_df.empty else 0
-
-            if action == "Sell" and cash_amount > current_balance:
-                st.error(f"❌ Insufficient Balance! You only have ${current_balance:.2f} of {coin} available.")
-            elif cash_amount <= 0:
-                st.error("Please enter a valid amount.")
-            else:
-                # Update Database
-                if action == "Buy":
-                    add_holding(email, coin, cash_amount, str(date))
-                else:
-                    sell_holding(email, coin, cash_amount, str(date))
-                
-                # Send Email Receipt (if service is connected)
-                try:
-                    send_transaction_notification(email, coin, action, cash_amount)
-                    st.success(f"🚀 {action} Successful! Email receipt sent.")
-                except:
-                    st.success(f"🚀 {action} Successful!")
-                
-                st.rerun()
-
     # ==========================================
     # 📊 MATH: CALCULATING QUANTITIES & TOTALS
     # ==========================================
@@ -150,4 +103,51 @@ def render_portfolio(df):
     # --- ALLOCATION CHART ---
     fig = px.pie(final_df, values='Value ($)', names='Asset', 
                  title='Asset Allocation', hole=0.5, template="plotly_dark")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True
+def render_portfolio(df):
+    st.markdown('<div class="section-title">💼 Professional Portfolio Manager</div>', unsafe_allow_html=True)
+    
+    email = st.session_state.get("email")
+    if not email:
+        st.warning("Please log in to manage your portfolio.")
+        return
+
+    # ==========================================
+    # 🛒 TRANSACTION UI (BUY & SELL)
+    # ==========================================
+    with st.expander("➕ / ➖ New Transaction (Execute Buy or Sell)", expanded=True):
+        t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+        
+        action = t_col1.radio("Action", ["Buy", "Sell"], help="Buy adds to holdings. Sell reduces them.")
+        coin = t_col2.selectbox("Select Asset", sorted(df["Crypto"].unique()))
+        cash_amount = t_col3.number_input("Cash Amount ($)", min_value=0.0, step=50.0)
+        date = t_col4.date_input("Transaction Date")
+
+        if st.button("Confirm Transaction", use_container_width=True):
+            # Fetch existing data for validation
+            raw_data = get_holdings(email)
+            holdings_df = pd.DataFrame(raw_data, columns=["Crypto", "Amount", "Date"])
+            
+            # Calculate current cash balance for this specific coin
+            current_balance = holdings_df[holdings_df["Crypto"] == coin]["Amount"].sum() if not holdings_df.empty else 0
+
+            if action == "Sell" and cash_amount > current_balance:
+                st.error(f"❌ Insufficient Balance! You only have ${current_balance:.2f} of {coin} available.")
+            elif cash_amount <= 0:
+                st.error("Please enter a valid amount.")
+            else:
+                # Update Database
+                if action == "Buy":
+                    add_holding(email, coin, cash_amount, str(date))
+                else:
+                    sell_holding(email, coin, cash_amount, str(date))
+                
+                # Send Email Receipt (if service is connected)
+                try:
+                    send_transaction_notification(email, coin, action, cash_amount)
+                    st.success(f"🚀 {action} Successful! Email receipt sent.")
+                except:
+                    st.success(f"🚀 {action} Successful!")
+                
+                st.rerun()
+
