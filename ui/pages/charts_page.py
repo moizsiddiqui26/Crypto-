@@ -88,7 +88,4 @@ def render_advanced_charts(df): # FIX: Accepts 'df' to calculate stats
         - This is riskier but can lead to faster gains. 
 
         - When bars are short and move in a steady line, it is **Low Volatility** (More stable).
-        When the bars are very tall and jump up and down, that is **High Volatility**. 
-        This is riskier but can lead to faster gains. 
-        When bars are short and move in a steady line, it is **Low Volatility** (More stable).
         """)
