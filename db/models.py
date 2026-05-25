@@ -1,11 +1,14 @@
+# db/models.py
+
 from db.database import get_connection
 import sqlite3
 
-# =========================
-# USER MODELS (Authentication)
-# =========================
+# ======================================================
+# 👤 USER MODELS (Authentication & Security)
+# ======================================================
 
 def create_user(name, email, password):
+    """Registers a new user in the system."""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -16,11 +19,13 @@ def create_user(name, email, password):
         conn.commit()
         return True
     except sqlite3.IntegrityError:
+        # Returns False if the email already exists
         return False
     finally:
         conn.close()
 
 def fetch_user(email):
+    """Retrieves user details for login verification."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE email=?", (email,))
@@ -29,6 +34,7 @@ def fetch_user(email):
     return user
 
 def update_user_password(email, password):
+    """Updates password for the Forgot Password flow."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -39,24 +45,29 @@ def update_user_password(email, password):
     conn.close()
 
 
-# =========================
-# PORTFOLIO MODELS (Buy/Sell)
-# =========================
-def sell_holding(email, crypto, amount, date):
+# ======================================================
+# 💼 PORTFOLIO MODELS (The Buy/Sell Logic)
+# ======================================================
+
+def add_holding(email, crypto, amount, date):
+    """Records a BUY transaction (Positive value)."""
     conn = get_connection()
     cur = conn.cursor()
-    # Force the amount to be negative to subtract from the total balance
     cur.execute(
         "INSERT INTO holdings (email, crypto, amount, date) VALUES (?, ?, ?, ?)",
-        (email, crypto, -abs(amount), date)
+        (email, crypto, abs(amount), date)
     )
     conn.commit()
     conn.close()
+
 def sell_holding(email, crypto, amount, date):
-    """Records a sell transaction by storing the amount as negative."""
+    """
+    Records a SELL transaction (Negative value).
+    This allows us to use SUM(amount) in the UI to find the current balance.
+    """
     conn = get_connection()
     cur = conn.cursor()
-    # Using negative abs() ensures it's always stored as a subtraction
+    # Force negative value for sells
     cur.execute(
         "INSERT INTO holdings (email, crypto, amount, date) VALUES (?, ?, ?, ?)",
         (email, crypto, -abs(amount), date)
@@ -65,7 +76,7 @@ def sell_holding(email, crypto, amount, date):
     conn.close()
 
 def get_holdings(email):
-    """Fetches all transactions for a user to calculate portfolio status."""
+    """Retrieves the full transaction history for a user's portfolio."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -76,25 +87,13 @@ def get_holdings(email):
     conn.close()
     return data
 
-def get_total_investment(email):
-    """Calculates net cash put into the portfolio (Buys - Sells)."""
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT SUM(amount) FROM holdings WHERE email=?",
-        (email,)
-    )
-    total = cur.fetchone()[0]
-    conn.close()
-    return total if total else 0
 
-
-# =========================
-# PRICE ALERT MODELS
-# =========================
+# ======================================================
+# 🚨 ALERT MODELS (Price Monitoring)
+# ======================================================
 
 def add_alert(email, coin, condition, target_price):
-    """Saves a new price alert."""
+    """Saves a user-defined price alert."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -105,7 +104,7 @@ def add_alert(email, coin, condition, target_price):
     conn.close()
 
 def get_alerts(email):
-    """Fetches alerts for a specific user."""
+    """Fetches all alerts for a specific user to display in the UI."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -117,7 +116,7 @@ def get_alerts(email):
     return rows
 
 def get_all_active_alerts():
-    """Used by background services to check all pending alerts."""
+    """System-level function to fetch all alerts that need checking."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -129,7 +128,7 @@ def get_all_active_alerts():
     return rows
 
 def deactivate_alert(alert_id):
-    """Turns off an alert once it has been triggered."""
+    """Disables an alert once it has been triggered and sent via email."""
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("UPDATE alerts SET active = 0 WHERE id = ?", (alert_id,))
