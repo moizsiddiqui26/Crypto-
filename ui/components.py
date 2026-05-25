@@ -163,7 +163,7 @@ def render_header(user_email):
     # ==================================================
     # Use a container div for the buttons to add horizontal padding
     st.markdown('<div class="nav-wrapper">', unsafe_allow_html=True)
-    col1, col2, col3, col4, col5, col6, col7,col8 = st.columns(7)
+    col1, col2, col3, col4, col5, col6, col7,col8 = st.columns(8)
 
     with col1:
         if st.button("📊 Dashboard", use_container_width=True):
