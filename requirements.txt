@@ -6,4 +6,3 @@ google-generativeai
 python-dotenv
 requests
 scikit-learn
-groq
