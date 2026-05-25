@@ -42,14 +42,14 @@ def update_user_password(email, password):
 # =========================
 # PORTFOLIO MODELS (Buy/Sell)
 # =========================
-
-def add_holding(email, crypto, amount, date):
-    """Records a buy transaction."""
+# models.py - Add this function
+def sell_holding(email, crypto, amount, date):
     conn = get_connection()
     cur = conn.cursor()
+    # Use -abs() to force the number to be negative
     cur.execute(
         "INSERT INTO holdings (email, crypto, amount, date) VALUES (?, ?, ?, ?)",
-        (email, crypto, amount, date)
+        (email, crypto, -abs(amount), date)
     )
     conn.commit()
     conn.close()
