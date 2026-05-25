@@ -42,6 +42,7 @@ def render_header(user_email):
     .custom-header {
         background: linear-gradient(90deg, #0f0c29, #302b63, #24243e);
         padding: 25px 40px;
+        /* Remove radius for flush look against screen edges */
         border-radius: 0px; 
         border-bottom: 2px solid #00ffcc;
         margin-top: 0px !important;
@@ -51,6 +52,7 @@ def render_header(user_email):
         box-shadow: 0px 4px 20px rgba(0,0,0,0.45);
     }
 
+    /* Top Row Layout */
     .header-top {
         display: flex;
         justify-content: space-between;
@@ -59,6 +61,7 @@ def render_header(user_email):
         gap: 15px;
     }
 
+    /* Logo Styling */
     .header-title {
         color: white;
         font-size: 34px;
@@ -70,6 +73,15 @@ def render_header(user_email):
         font-family: 'Inter', sans-serif;
     }
 
+    .elite-tag {
+        color: #94A3B8;
+        font-size: 11px;
+        letter-spacing: 2px;
+        font-weight: 500;
+        margin-left: 5px;
+    }
+
+    /* User Badge */
     .user-badge {
         background: rgba(255, 255, 255, 0.08);
         padding: 10px 18px;
@@ -84,6 +96,7 @@ def render_header(user_email):
         backdrop-filter: blur(8px);
     }
 
+    /* Status Pulse */
     .status-dot {
         width: 10px;
         height: 10px;
@@ -99,10 +112,12 @@ def render_header(user_email):
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 204, 0); }
     }
 
+    /* Navigation Bar Spacing (Slight padding so buttons aren't flush) */
     .nav-wrapper {
         padding: 15px 20px;
     }
 
+    /* Navigation Buttons */
     div.stButton > button {
         background: rgba(255, 255, 255, 0.03);
         color: white;
@@ -122,11 +137,15 @@ def render_header(user_email):
     </style>
     """, unsafe_allow_html=True)
 
+    # ==================================================
+    # HEADER HTML
+    # ==================================================
     header_html = f"""
     <div class="custom-header">
         <div class="header-top">
             <div class="header-title">
                 🚀 CRYPTOPORT
+                <span class="elite-tag"></span>
             </div>
             <div class="user-badge">
                 <span class="status-dot"></span>
@@ -140,11 +159,11 @@ def render_header(user_email):
     st.markdown(header_html, unsafe_allow_html=True)
 
     # ==================================================
-    # UPDATED NAVIGATION MENU (8 COLUMNS)
+    # NAVIGATION MENU
     # ==================================================
+    # Use a container div for the buttons to add horizontal padding
     st.markdown('<div class="nav-wrapper">', unsafe_allow_html=True)
-    # Increased to 8 columns to accommodate the new page
-    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
+    col1, col2, col3, col4, col5, col6, col7,col8 = st.columns(7)
 
     with col1:
         if st.button("📊 Dashboard", use_container_width=True):
@@ -154,7 +173,7 @@ def render_header(user_email):
         if st.button("🕯 Advance Chart", use_container_width=True):
             st.session_state.page = "🕯 Advance Chart"
             st.rerun()
-     with col3:
+    with col3:
         if st.button("📈 Signals", use_container_width=True):
             st.session_state.page = "📈 Trading Signals"
             st.rerun()
@@ -180,4 +199,41 @@ def render_header(user_email):
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# (render_ticker function remains unchanged)
+
+# ======================================================
+# TICKER COMPONENT
+# ======================================================
+def render_ticker(prices):
+    if not prices:
+        return
+
+    ticker_items = ""
+    for coin, details in prices.items():
+        price = details["price"]
+        change = details["change_24h"]
+        color = "#00ffcc" if change >= 0 else "#ff4b4b"
+        symbol = "▲" if change >= 0 else "▼"
+
+        ticker_items += f"""
+        <span style="margin-right:40px;font-weight:bold;">
+            {coin.upper()}:
+            <span style="color:white;">${price:,.2f}</span>
+            <span style="color:{color};">{symbol} {abs(change):.2f}%</span>
+        </span>
+        """
+
+    st.markdown(f"""
+    <div style="
+        background:rgba(255,255,255,0.04);
+        padding:10px 20px;
+        border-radius:0px;
+        overflow:hidden;
+        margin-bottom:20px;
+        border-top:1px solid rgba(255,255,255,0.06);
+        border-bottom:1px solid rgba(255,255,255,0.06);
+    ">
+        <marquee scrollamount="5" style="color:white; font-family:monospace; font-size:14px;">
+            {ticker_items}
+        </marquee>
+    </div>
+    """, unsafe_allow_html=True)
