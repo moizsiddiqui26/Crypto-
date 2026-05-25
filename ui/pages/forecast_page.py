@@ -7,14 +7,14 @@ from services.forecast_engine import get_forecast_summary
 
 def render_forecast(df):
     # --- 1. SELECTION SECTION ---
-    st.markdown("# 🔮 AI Price Intelligence")
+    st.markdown("# 🔮 Price Prediction")
     
     col_sel1, col_sel2 = st.columns(2)
     with col_sel1:
         st.markdown("### Select Asset to Analyze")
         coin = st.selectbox("", sorted(df["Crypto"].unique()), label_visibility="collapsed")
     with col_sel2:
-        st.markdown("### Hypothetical Investment ($)")
+        st.markdown("###  Investment ($)")
         amount = st.number_input("", value=1000.0, label_visibility="collapsed")
 
     # Process data for the specific coin
@@ -59,7 +59,7 @@ def render_forecast(df):
 
     # --- 4. AI PERFORMANCE REVIEW (Backtesting Last 7 Days) ---
     st.markdown("---")
-    st.markdown("### 🏆 AI Performance Review (Last 7 Working Days)")
+    st.markdown("### Performance Review (Last 7 Working Days)")
     
     train_data = coin_df.iloc[:-7].reset_index(drop=True)
     actual_last_7 = coin_df.iloc[-7:].reset_index(drop=True)
