@@ -16,125 +16,110 @@ except ImportError:
     st.error("Error loading backend services.")
 
 def render_chatbot_page(df):
-    # Professional Header with Status Indicator
-    h_col1, h_col2 = st.columns([4, 1])
-    with h_col1:
-        st.markdown('<div class="section-title">🤖 AI Investment Copilot</div>', unsafe_allow_html=True)
-    with h_col2:
-        st.markdown('<p style="color:#00ffcc; text-align:right; font-size:12px;">● System Online</p>', unsafe_allow_html=True)
+    # Professional Header
+    st.markdown('<div class="section-title">🤖 AI Investment Copilot</div>', unsafe_allow_html=True)
 
     # ============================================================
-    # 📘 ENHANCED USER GUIDE & QUICK ACTIONS
+    # 📘 USER GUIDE
     # ============================================================
-    with st.expander("📖 AI Mastery Guide: Get better results", expanded=False):
+    with st.expander("📖 New User Guide: How to use this AI"):
         st.markdown("""
-        **How to talk to your Copilot:**
-        1. **Portfolio Reviews**: Ask *"Should I rebalance my current holdings?"*
-        2. **Technical Education**: Ask *"What is the difference between Proof of Work and Proof of Stake?"*
-        3. **Market Sentiment**: Ask *"What is the market sentiment for Ethereum today?"*
+        ### Welcome to your AI Copilot! 
+        Think of this AI as your **financial mentor**. It has access to your portfolio and live market trends.
+        
+        **Things you can ask:**
+        - **"Explain Bitcoin like I'm 5"** — Great for understanding the basics.
+        - **"Is it a good time to buy Ethereum?"** — AI analyzes the current charts for you.
+        - **"How can I lower my portfolio risk?"** — AI suggests safer moves based on your data.
         """)
-        st.info("💡 **Pro Tip:** The AI has access to your current portfolio data and live market prices.")
+        st.info("💡 **Pro Tip:** Be specific. Instead of asking 'Is BTC good?', try 'Is BTC a good long-term hold given its current volatility?'")
 
     st.markdown("---")
 
     # ============================================================
-    # 🛠️ SIDEBAR-STYLE TOOLS (PORTFOLIO CONTEXT)
+    # 💬 CHAT INTERFACE (Full Width)
     # ============================================================
-    col_chat, col_tools = st.columns([2.5, 1])
-
-    # Portfolio Context for AI
+    
+    # Background Portfolio Sync (Silent)
     email = st.session_state.get("email")
     holdings = get_holdings(email)
-    portfolio_summary = "User has no holdings."
+    portfolio_summary = "User has no active holdings."
+    if holdings:
+        pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
+        portfolio_summary = pf.to_string()
+
+    # Chat container for scrollable area
+    chat_container = st.container(height=500, border=True)
     
-    with col_tools:
-        st.markdown("### 🧳 Your Context")
-        if holdings:
-            pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
-            portfolio_summary = pf.to_string()
-            st.success(f"✅ AI synced with {len(pf)} assets")
-            st.caption("AI is currently analyzing your holdings to provide personalized advice.")
-        else:
-            st.warning("⚠️ No holdings found. AI will provide general market advice.")
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = [
+            ("assistant", "Hello! I'm your AI Crypto Advisor. I've synced with your portfolio and market data. What's on your mind?")
+        ]
+
+    # Display history
+    with chat_container:
+        for role, msg in st.session_state.chat_history:
+            with st.chat_message(role):
+                st.markdown(msg)
+
+    # Chat Input
+    user_input = st.chat_input("Ask your AI crypto advisor...")
+
+    if user_input:
+        # Add user message to history
+        st.session_state.chat_history.append(("user", user_input))
         
-        st.markdown("---")
-        st.markdown("### ⚡ Quick Actions")
-        # Quick Action Buttons that trigger chat
-        if st.button("📊 Review Portfolio", use_container_width=True):
-            st.session_state.temp_prompt = "Based on my current holdings, what is my risk level?"
-        if st.button("📈 Trend Forecast", use_container_width=True):
-            st.session_state.temp_prompt = "Which top 3 coins show the best trend for next week?"
-        if st.button("📉 Risk Check", use_container_width=True):
-            st.session_state.temp_prompt = "Explain the current market RSI and if it's safe to buy."
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing market data..."):
+                # Portfolio summary is passed to the AI silently
+                response = ask_ai(user_input, portfolio_summary)
+                st.markdown(response)
+                st.session_state.chat_history.append(("assistant", response))
+        
+        st.rerun()
+
+    # ==========================================
+    # 🎓 RSI KNOWLEDGE CENTER (Bottom Section)
+    # ==========================================
+    st.markdown("---")
+    st.markdown("### 🎓 Understanding RSI (Relative Strength Index)")
+    
+    # Cheat Sheet
+    guide_col1, guide_col2 = st.columns(2)
+
+    with guide_col1:
+        st.write("**What is RSI?**")
+        st.caption("""
+        The RSI is a momentum oscillator (0-100) that measures the speed and change of price movements. 
+        It identifies when a coin is 'Overbought' (too expensive) or 'Oversold' (potentially cheap).
+        """)
+        
+    with guide_col2:
+        st.write("**The Range Guide**")
+        st.markdown("""
+        - 🟢 **Below 30 (Oversold):** Potential buying opportunity.
+        - ⚪ **40 to 60 (Neutral):** Stable/Consolidation zone.
+        - 🔴 **Above 70 (Overbought):** Potential selling opportunity.
+        """)
 
     # ============================================================
-    # 💬 PREMIUM CHAT INTERFACE
-    # ============================================================
-    with col_chat:
-        # Chat container for scrollable area
-        chat_container = st.container(height=500, border=True)
-        
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = [
-                ("assistant", "Hello! I am your AI Investment Copilot. I have access to your portfolio and live market data. How can I help you today?")
-            ]
-
-        # Display history within the container
-        with chat_container:
-            for role, msg in st.session_state.chat_history:
-                with st.chat_message(role):
-                    st.markdown(msg)
-
-        # Input handling
-        user_input = st.chat_input("Message your Copilot...")
-        
-        # Override user_input if a Quick Action was clicked
-        active_prompt = st.session_state.get('temp_prompt') or user_input
-
-        if active_prompt:
-            # Clear button state after use
-            if 'temp_prompt' in st.session_state:
-                st.session_state.temp_prompt = None
-
-            # Add user message
-            st.session_state.chat_history.append(("user", active_prompt))
-            
-            # This triggers a rerun to show the user message immediately, 
-            # then the assistant will process on the next loop.
-            with st.chat_message("user"):
-                st.markdown(active_prompt)
-
-            with st.chat_message("assistant"):
-                with st.spinner("AI is thinking..."):
-                    response = ask_ai(active_prompt, portfolio_summary)
-                    st.markdown(response)
-                    st.session_state.chat_history.append(("assistant", response))
-            
-            st.rerun()
-
-    # ============================================================
-    # 📚 DESIGNER DICTIONARY (STYLIZED)
+    # 📚 CRYPTO DICTIONARY
     # ============================================================
     st.markdown("---")
-    st.markdown("### 🏛️ Crypto Knowledge Hub")
-    
-    # CSS for nice cards
-    st.markdown("""
-        <style>
-        .crypto-card {
-            background-color: #1a1a3a;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 5px solid #00ffcc;
-            height: 120px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
+    st.subheader("📚 Beginner's Crypto Dictionary")
     d1, d2, d3 = st.columns(3)
+    
     with d1:
-        st.markdown('<div class="crypto-card"><b>🚀 Bull Market</b><br><small>Consistent price increases. High optimism and buying pressure.</small></div>', unsafe_allow_html=True)
+        st.markdown("**🚀 Bull Market**")
+        st.caption("When prices are going up consistently. Everyone is optimistic!")
+    
     with d2:
-        st.markdown('<div class="crypto-card"><b>🐻 Bear Market</b><br><small>Sustained price drops. Market "hibernation" and caution.</small></div>', unsafe_allow_html=True)
+        st.markdown("**🐻 Bear Market**")
+        st.caption("When prices are falling and the market is 'hibernating'.")
+    
     with d3:
-        st.markdown('<div class="crypto-card"><b>💎 HODL</b><br><small>A long-term strategy of holding assets regardless of volatility.</small></div>', unsafe_allow_html=True)
+        st.markdown("**💎 HODL**")
+        st.caption("A strategy of holding your assets long-term, regardless of volatility.")
