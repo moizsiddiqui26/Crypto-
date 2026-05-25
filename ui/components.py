@@ -170,9 +170,9 @@ def render_header(user_email):
             st.session_state.page = "📊 Dashboard"
             st.rerun()
     with col2:
-        if st.button("🕯 Chart", use_container_width=True):
+        if st.button("🕯 Charts", use_container_width=True):
             st.session_state.page = "🕯 Advance Chart"
-            st.rerun()
+            st.rerun()    
     with col3:
         if st.button("📈 Signals", use_container_width=True):
             st.session_state.page = "📈 Trading Signals"
