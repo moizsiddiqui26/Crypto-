@@ -9,7 +9,7 @@ from .pages.risk_page import render_risk
 from .pages.signals_page import render_signals
 from .pages.charts_page import render_advanced_charts
 from .pages.chatbot_page import render_chatbot_page
-
+from ui.pages.charts_page import render_advanced_charts
 @st.cache_data(ttl=300)
 def load_data():
     return get_historical_data()
@@ -24,6 +24,9 @@ def main():
 
     if page == "📊 Dashboard":
         render_dashboard(df)
+    elif st.session_state.page == "🕯 Advance Chart":
+        # This calls the file you uploaded!
+        render_advanced_charts(df)
     elif page == "👤 Portfolio":
         render_portfolio(df)
     elif page == "🔮 Forecast":
