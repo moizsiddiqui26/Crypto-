@@ -1,83 +1,58 @@
 import streamlit as st
-import pandas as pd
-import os
-import sys
 
-# --- PATH FIX FOR ROBUST IMPORTS ---
-dir_path = os.path.dirname(os.path.realpath(__file__))
-root_path = os.path.abspath(os.path.join(dir_path, "../../.."))
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
-
+# ==========================================================
+# SAFE IMPORTS
+# ==========================================================
 try:
     from services.ai_assistant import ask_ai
+except Exception as e:
+    st.error(f"AI Assistant Import Error: {e}")
+    st.stop()
+
+try:
     from db.models import get_holdings
-except ImportError:
-    st.error("Error loading backend services.")
+except Exception as e:
+    st.error(f"Database Import Error: {e}")
+    st.stop()
+
 
 def render_chatbot_page(df):
-    # Professional Header
-    st.markdown('<div class="section-title">🤖 AI Investment Copilot</div>', unsafe_allow_html=True)
+    st.title("🤖 AI Crypto Assistant")
 
-    # ============================================================
-    # 📘 USER GUIDE
-    # ============================================================
-    with st.expander("📖 New User Guide: How to use this AI"):
-        st.markdown("""
-        ### Welcome to your AI Copilot! 
-        Think of this AI as your **financial mentor**. It has access to your portfolio and live market trends.
-        
-        **Things you can ask:**
-        - **"Explain Bitcoin like I'm 5"** — Great for understanding the basics.
-        - **"Is it a good time to buy Ethereum?"** — AI analyzes the current charts for you.
-        - **"How can I lower my portfolio risk?"** — AI suggests safer moves based on your data.
-        """)
-        st.info("💡 **Pro Tip:** Be specific. Instead of asking 'Is BTC good?', try 'Is BTC a good long-term hold given its current volatility?'")
+    email = st.session_state.get("email", "")
 
-    st.markdown("---")
+    # ==========================================================
+    # GET USER HOLDINGS SAFELY
+    # ==========================================================
+    try:
+        holdings = get_holdings(email)
+    except Exception as e:
+        st.error(f"Unable to fetch portfolio holdings: {e}")
+        holdings = []
 
-    # ============================================================
-    # 💬 CHAT INTERFACE (Full Width)
-    # ============================================================
-    
-    # Background Portfolio Sync (Silent)
-    email = st.session_state.get("email")
-    holdings = get_holdings(email)
-    portfolio_summary = "User has no active holdings."
+    st.subheader("Your Portfolio")
+
     if holdings:
-        pf = pd.DataFrame(holdings, columns=["Crypto", "Amount", "Date"])
-        portfolio_summary = pf.to_string()
+        for crypto, amount, date in holdings:
+            st.write(f"• {crypto}: {amount}")
+    else:
+        st.info("No holdings found.")
 
-    # Chat container for scrollable area
-    chat_container = st.container(height=500, border=True)
-    
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = [
-            ("assistant", "Hello! I'm your AI Crypto Advisor. I've synced with your portfolio and market data. What's on your mind?")
-        ]
+    user_query = st.text_input(
+        "Ask me anything about crypto, your portfolio, or market trends:"
+    )
 
-    # Display history
-    with chat_container:
-        for role, msg in st.session_state.chat_history:
-            with st.chat_message(role):
-                st.markdown(msg)
+    if st.button("Ask AI"):
+        if user_query:
 
-    # Chat Input
-    user_input = st.chat_input("Ask your AI crypto advisor...")
+            try:
+                response = ask_ai(
+                    question=user_query,
+                    portfolio=holdings,
+                    market_data=df
+                )
 
-    if user_input:
-        # Add user message to history
-        st.session_state.chat_history.append(("user", user_input))
-        
-        with st.chat_message("user"):
-            st.markdown(user_input)
+                st.success(response)
 
-        with st.chat_message("assistant"):
-            with st.spinner("Analyzing market data..."):
-                # Portfolio summary is passed to the AI silently
-                response = ask_ai(user_input, portfolio_summary)
-                st.markdown(response)
-                st.session_state.chat_history.append(("assistant", response))
-        
-        st.rerun()
-
+            except Exception as e:
+                st.error(f"AI Error: {e}")
