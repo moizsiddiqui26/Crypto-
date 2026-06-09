@@ -216,7 +216,7 @@ def render_advanced_charts(df):
         )
 
         st.video(
-            "https://www.youtube.com/watch?v=eynxyoKgpng"
+            "https://youtu.be/InYeCkNdkvg?si=NnvAfTKVtkiELHWS"
         )
 
         st.markdown(
