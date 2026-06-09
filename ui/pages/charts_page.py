@@ -89,3 +89,13 @@ def render_advanced_charts(df): # FIX: Accepts 'df' to calculate stats
 
         - When bars are short and move in a steady line, it is **Low Volatility** (More stable).
         """)
+# 4. Candlestick Chart Tutorial Video
+st.markdown("---")
+st.markdown("### 🎥 Learn Candlestick Charts")
+
+st.write("""
+New to trading? Watch this beginner-friendly video to understand how
+candlestick charts work and how traders use them to analyze price movements.
+""")
+
+st.video("https://www.youtube.com/watch?v=eynxyoKgpng")
