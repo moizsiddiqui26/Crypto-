@@ -116,80 +116,108 @@ def render_advanced_charts(df):
       }});
       </script>
     </div>
-    """
+   # ==========================
+# EDUCATION & LEARNING HUB
+# ==========================
 
-    components.html(html_code, height=570)
+st.markdown("---")
+st.markdown("## 🎓 Learn Technical Analysis")
 
-    st.markdown("---")
+left_col, right_col = st.columns([1, 1])
 
-    # Educational Section
-    st.markdown("## 📚 Beginner's Guide")
+# =====================================
+# LEFT SIDE - BEGINNER GUIDE
+# =====================================
+with left_col:
 
-    with st.expander("🕯️ What are Candlestick Charts?"):
+    st.markdown("### 📚 Beginner's Guide")
 
-        st.write("""
-        Candlestick charts are used by traders to understand market
-        movements and investor sentiment.
+    with st.expander("🕯️ Candlestick Basics", expanded=True):
+        st.markdown("""
+        ### Understanding Candlesticks
 
-        **Green Candle**
+        🟢 **Green Candle**
         - Price closed higher than it opened.
-        - Indicates buying pressure.
+        - Buyers controlled the market.
 
-        **Red Candle**
+        🔴 **Red Candle**
         - Price closed lower than it opened.
-        - Indicates selling pressure.
+        - Sellers controlled the market.
 
-        **Wicks (Shadows)**
-        - Top wick = Highest price reached.
-        - Bottom wick = Lowest price reached.
+        📏 **Wicks (Shadows)**
+        - Upper Wick = Highest price reached.
+        - Lower Wick = Lowest price reached.
 
-        Candlesticks help traders identify trends,
-        reversals, and market momentum.
+        Candlesticks help traders understand market sentiment quickly.
         """)
 
-    with st.expander("📉 High vs Low Volatility"):
+    with st.expander("📈 Understanding Trends"):
+        st.markdown("""
+        **Bullish Trend 🚀**
+        - Higher highs
+        - Higher lows
 
-        st.write("""
+        **Bearish Trend 📉**
+        - Lower highs
+        - Lower lows
+
+        **Sideways Market ➖**
+        - Price moves in a range.
+        - Market lacks direction.
+        """)
+
+    with st.expander("⚡ Volatility & Risk"):
+        st.markdown("""
         **High Volatility**
-        - Large price swings.
-        - Higher risk and reward.
+        - Large price movements.
+        - High risk, high reward.
 
         **Low Volatility**
-        - Smaller price movements.
-        - More stable market conditions.
-
-        Investors often use volatility to assess risk before investing.
+        - Stable price movement.
+        - Lower risk.
         """)
 
-    with st.expander("📊 How to Read Trends?"):
+    with st.expander("💡 Beginner Trading Tips"):
+        st.markdown("""
+        ✅ Never invest based on one candle.
 
-        st.write("""
-        **Uptrend**
-        - Higher highs and higher lows.
-        - Indicates bullish momentum.
+        ✅ Confirm trends using multiple candles.
 
-        **Downtrend**
-        - Lower highs and lower lows.
-        - Indicates bearish momentum.
+        ✅ Use stop-loss to manage risk.
 
-        **Sideways Market**
-        - Price moves within a range.
-        - Indicates uncertainty in the market.
+        ✅ Avoid emotional trading.
+
+        ✅ Follow risk management principles.
         """)
 
-    st.markdown("---")
+# =====================================
+# RIGHT SIDE - VIDEO LEARNING
+# =====================================
+with right_col:
 
-    # YouTube Tutorial Section
-    st.subheader("🎥 Learn Candlestick Charts")
+    st.markdown("### 🎥 Video Learning Center")
 
     st.info(
-        "Watch this beginner-friendly video to understand how "
-        "candlestick charts work and how traders analyze price action."
+        "Watch a beginner-friendly candlestick chart tutorial."
     )
 
-    st.video("https://www.youtube.com/watch?v=eynxyoKgpng")
-
-    st.success(
-        "✅ After watching the video, return to the chart above and "
-        "try identifying bullish and bearish candles yourself."
+    st.image(
+        "https://img.youtube.com/vi/eynxyoKgpng/maxresdefault.jpg",
+        use_container_width=True
     )
+
+    show_video = st.button(
+        "▶ Watch Candlestick Tutorial",
+        use_container_width=True
+    )
+
+    if show_video:
+        st.video(
+            "https://www.youtube.com/watch?v=eynxyoKgpng"
+        )
+
+        st.success(
+            "Use the fullscreen button in the video player for a larger view."
+        )
+
+st.markdown("---")
