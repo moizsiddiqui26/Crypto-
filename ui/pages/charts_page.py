@@ -2,10 +2,14 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 
-def render_advanced_charts(df):
-    st.markdown("# 📊 Crypto Charts & Analysis")
 
-    # 1. Beginner-Friendly Asset Selection
+def render_advanced_charts(df):
+
+    st.markdown("# 📊 Crypto Charts & Market Analysis")
+
+    # ==========================
+    # COIN SELECTION
+    # ==========================
     symbol_map = {
         "Bitcoin (BTC)": "BINANCE:BTCUSDT",
         "Ethereum (ETH)": "BINANCE:ETHUSDT",
@@ -14,17 +18,18 @@ def render_advanced_charts(df):
     }
 
     selected_name = st.selectbox(
-        "🪙 Pick a Coin to Analyze",
+        "🪙 Select Cryptocurrency",
         list(symbol_map.keys())
     )
 
     symbol = symbol_map[selected_name]
 
-    # Extract ticker
     coin_ticker = selected_name.split("(")[1].split(")")[0]
 
-    # Performance Section
-    st.subheader(f"🌟 {selected_name} Performance at a Glance")
+    # ==========================
+    # PERFORMANCE SNAPSHOT
+    # ==========================
+    st.subheader(f"🌟 {selected_name} Performance Snapshot")
 
     coin_data = df[df["Crypto"] == coin_ticker].sort_values("Date")
 
@@ -68,35 +73,35 @@ def render_advanced_charts(df):
 
         if chg_7d > 5:
             st.success(
-                f"🚀 {coin_ticker} has strong bullish momentum this week."
+                f"🚀 {coin_ticker} is showing strong bullish momentum this week."
             )
 
         elif chg_7d < -5:
             st.error(
-                f"📉 {coin_ticker} is currently experiencing a price dip."
+                f"📉 {coin_ticker} is currently experiencing a bearish trend."
             )
 
         else:
             st.info(
-                f"⚖️ {coin_ticker} is moving in a relatively stable range."
+                f"⚖️ {coin_ticker} is currently trading within a stable range."
             )
 
     else:
-        st.warning("No data available for the selected coin.")
+        st.warning("No data available for this cryptocurrency.")
 
     st.markdown("---")
 
-    # TradingView Chart
-    st.subheader("🔍 Interactive TradingView Chart")
+    # ==========================
+    # TRADINGVIEW CHART
+    # ==========================
+    st.subheader("📉 Interactive Trading Chart")
 
     html_code = f"""
     <div class="tradingview-widget-container">
       <div id="tradingview_chart"></div>
 
-      <script
-      type="text/javascript"
-      src="https://s3.tradingview.com/tv.js">
-      </script>
+      <script type="text/javascript"
+      src="https://s3.tradingview.com/tv.js"></script>
 
       <script type="text/javascript">
       new TradingView.widget({{
@@ -116,108 +121,126 @@ def render_advanced_charts(df):
       }});
       </script>
     </div>
-   # ==========================
-# EDUCATION & LEARNING HUB
-# ==========================
+    """
 
-st.markdown("---")
-st.markdown("## 🎓 Learn Technical Analysis")
+    components.html(html_code, height=570)
 
-left_col, right_col = st.columns([1, 1])
+    st.markdown("---")
 
-# =====================================
-# LEFT SIDE - BEGINNER GUIDE
-# =====================================
-with left_col:
+    # ==========================
+    # EDUCATION HUB
+    # ==========================
+    st.markdown("## 🎓 Learn Technical Analysis")
 
-    st.markdown("### 📚 Beginner's Guide")
+    left_col, right_col = st.columns([1, 1])
 
-    with st.expander("🕯️ Candlestick Basics", expanded=True):
-        st.markdown("""
-        ### Understanding Candlesticks
+    # ==========================
+    # LEFT SIDE
+    # ==========================
+    with left_col:
 
-        🟢 **Green Candle**
-        - Price closed higher than it opened.
-        - Buyers controlled the market.
+        st.markdown("### 📚 Beginner's Guide")
 
-        🔴 **Red Candle**
-        - Price closed lower than it opened.
-        - Sellers controlled the market.
+        with st.expander(
+            "🕯️ Understanding Candlestick Charts",
+            expanded=True
+        ):
 
-        📏 **Wicks (Shadows)**
-        - Upper Wick = Highest price reached.
-        - Lower Wick = Lowest price reached.
+            st.markdown("""
+            ### Candlestick Basics
 
-        Candlesticks help traders understand market sentiment quickly.
-        """)
+            🟢 **Green Candle**
+            - Price closed higher than opened
+            - Buyers dominated
 
-    with st.expander("📈 Understanding Trends"):
-        st.markdown("""
-        **Bullish Trend 🚀**
-        - Higher highs
-        - Higher lows
+            🔴 **Red Candle**
+            - Price closed lower than opened
+            - Sellers dominated
 
-        **Bearish Trend 📉**
-        - Lower highs
-        - Lower lows
+            📏 **Wicks**
+            - Upper wick = Highest price
+            - Lower wick = Lowest price
 
-        **Sideways Market ➖**
-        - Price moves in a range.
-        - Market lacks direction.
-        """)
+            Candlesticks help identify market sentiment.
+            """)
 
-    with st.expander("⚡ Volatility & Risk"):
-        st.markdown("""
-        **High Volatility**
-        - Large price movements.
-        - High risk, high reward.
+        with st.expander("📈 Trend Analysis"):
 
-        **Low Volatility**
-        - Stable price movement.
-        - Lower risk.
-        """)
+            st.markdown("""
+            **Bullish Trend 🚀**
+            - Higher highs
+            - Higher lows
 
-    with st.expander("💡 Beginner Trading Tips"):
-        st.markdown("""
-        ✅ Never invest based on one candle.
+            **Bearish Trend 📉**
+            - Lower highs
+            - Lower lows
 
-        ✅ Confirm trends using multiple candles.
+            **Sideways Market ➖**
+            - Price moves within a range
+            """)
 
-        ✅ Use stop-loss to manage risk.
+        with st.expander("⚡ Volatility & Risk"):
 
-        ✅ Avoid emotional trading.
+            st.markdown("""
+            **High Volatility**
+            - Large price swings
+            - Higher risk and reward
 
-        ✅ Follow risk management principles.
-        """)
+            **Low Volatility**
+            - Smaller fluctuations
+            - More stable investments
+            """)
 
-# =====================================
-# RIGHT SIDE - VIDEO LEARNING
-# =====================================
-with right_col:
+        with st.expander("💡 Trading Tips"):
 
-    st.markdown("### 🎥 Video Learning Center")
+            st.markdown("""
+            ✅ Never trade based on a single candle.
 
-    st.info(
-        "Watch a beginner-friendly candlestick chart tutorial."
-    )
+            ✅ Always follow the trend.
 
-    st.image(
-        "https://img.youtube.com/vi/eynxyoKgpng/maxresdefault.jpg",
-        use_container_width=True
-    )
+            ✅ Use stop-loss protection.
 
-    show_video = st.button(
-        "▶ Watch Candlestick Tutorial",
-        use_container_width=True
-    )
+            ✅ Manage risk before profit.
 
-    if show_video:
-        st.video(
-            "https://www.youtube.com/watch?v=eynxyoKgpng"
+            ✅ Avoid emotional decisions.
+            """)
+
+    # ==========================
+    # RIGHT SIDE
+    # ==========================
+    with right_col:
+
+        st.markdown("### 🎥 Video Learning Center")
+
+        st.info(
+            "Watch this beginner-friendly tutorial "
+            "to master candlestick charts."
         )
 
-        st.success(
-            "Use the fullscreen button in the video player for a larger view."
+        st.image(
+            "https://img.youtube.com/vi/eynxyoKgpng/maxresdefault.jpg",
+            use_container_width=True
         )
 
-st.markdown("---")
+        show_video = st.button(
+            "▶ Watch Candlestick Tutorial",
+            use_container_width=True
+        )
+
+        if show_video:
+
+            st.video(
+                "https://www.youtube.com/watch?v=eynxyoKgpng"
+            )
+
+            st.success(
+                "Click fullscreen in the video player "
+                "for a larger viewing experience."
+            )
+
+    st.markdown("---")
+
+    st.caption(
+        "📚 Educational content is for learning purposes only "
+        "and should not be considered financial advice."
+    )
