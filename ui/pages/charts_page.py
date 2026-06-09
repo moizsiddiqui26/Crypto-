@@ -155,27 +155,8 @@ def render_advanced_charts(df):
             🔴 **Red Candle**
             - Price closed lower than it opened
             - Sellers controlled the market
-
-            📏 **Wicks**
-            - Upper Wick = Highest price reached
-            - Lower Wick = Lowest price reached
-
+                
             Candlesticks help traders quickly understand market sentiment.
-            """)
-
-        with st.expander("📈 Trend Analysis"):
-
-            st.markdown("""
-            **Bullish Trend 🚀**
-            - Higher highs
-            - Higher lows
-
-            **Bearish Trend 📉**
-            - Lower highs
-            - Lower lows
-
-            **Sideways Market ➖**
-            - Price moves within a range.
             """)
 
         with st.expander("⚡ Volatility & Risk"):
@@ -222,7 +203,7 @@ def render_advanced_charts(df):
         st.markdown(
             """
             <div style='text-align:center; margin-top:15px;'>
-                <a href='https://www.youtube.com/watch?v=eynxyoKgpng'
+                <a href='https://youtu.be/InYeCkNdkvg?si=NnvAfTKVtkiELHWS'
                    target='_blank'>
                     <button style='
                         background-color:#FF0000;
